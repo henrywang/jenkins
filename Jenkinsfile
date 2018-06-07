@@ -1,7 +1,7 @@
 pipeline {
     agent none
     environment {
-        HYPERVISOR = 0
+        HYPERVISOR = '4'
         API_PORT = 8989
     }
     stages {
@@ -21,24 +21,32 @@ pipeline {
             parallel {
                 stage('Hyper-V') {
                     when {
-                        anyof {
-                            environment name: 'HYPERVISOR', value: 1
-                            environment name: 'HYPERVISOR', value: 4
+                        anyOf {
+                            environment name: 'HYPERVISOR', value: '1'
+                            environment name: 'HYPERVISOR', value: '4'
                         }
+                    }
+                    steps {
+                        echo 'hyper-v'
                     }
                 }
                 stage('ESXi') {
                     when {
-                        anyof {
-                            environment name: 'HYPERVISOR', value: 2
-                            environment name: 'HYPERVISOR', value: 4
+                        anyOf {
+                            environment name: 'HYPERVISOR', value: '2'
+                            environment name: 'HYPERVISOR', value: '4'
                         }
+                    }
+                    steps {
+                        echo 'esxi'
                     }
                 }
             }
         }
         stage('Clean Up') {
-
+            steps {
+                echo 'clean up'
+            }
         }
     }
 }
