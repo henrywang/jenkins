@@ -1,0 +1,19 @@
+sudo: required
+dist: trusty
+services:
+- docker
+env:
+  global:
+    secure: "VY2Pu7QxLXEGs3n6zAMjRxTz2qtRWQedSzEaJJtbtJ60E26Qr4qSsUo+i90c4K7wPL4nyVTgY3sK1FNeZOnb+pmqN4eDfEBOuYwAJQmU2JaUTI/mOAUtFaHUvh6MTv+jQldrqu9b25Klf+DMSCLPEaMGh3NP/wx2I7TAIBZ7FQVDvmAS/DpVtEZuJM6M3zTXMJ1ADdGvpo7tdKVV7y14NwceZpuvHZKYEfJP+sqX2K614VzDESS41uNSnWRrVKBYAyKpLxX5QrRczc4JwGB6tt1ZE17LzfhfV+Ra8ajXerILuYc/GhWrfZGxkqpkOlH/+hkqZhEtjYW5zamVPgdFED2I/6HfU4YhCToVCyBmUyPBdTI4zvLgXgF6UrbL5P7VNT7ycS0eLMv9DMcDx4AIDFlmGDl8qDraT063+FtuUdB+Zv0MU9LRYTieSInHwx9X3f1iAyGi8xFN+VkErQ/lgh0b1gmYqJ7IqnHZV/WUtXPoNN9jTpDiIuLKFi5ilg/h1DcWXo76vYvwhpPSQM/5Jj1+5DZd5D8cJ+UMwTmXeXdB1ljltZN7fa+xDL+4NiO2VkoEaiEisFDWYgCfZTNBhg+BZnGq6MREaxydS4xYSYDpKd8mjMsLksUTMHryelNTy9qKKtw+Yp7O3ToJ5qydhIrkF6t9oi7/FOIy5zlYTdw="
+script:
+- |
+      sudo docker build -t henrywangxf/jenkins:latest .
+after_success:
+- |
+      sudo docker login -u henrywangxf -p $DOCKER_PASSWORD
+      sudo docker tag henrywangxf/jenkins:latest henrywangxf/jenkins:$TRAVIS_BUILD_NUMBER
+      sudo docker push henrywangxf/jenkins
+notifications:
+  email:
+    on_failure: change
+    on_success: never
