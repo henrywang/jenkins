@@ -1,44 +1,59 @@
+def API_PORT = '8989'
+def HYPERVISOR = 3
+
 pipeline {
     agent none
-    environment {
-        HYPERVISOR = '4'
-        API_PORT = 8989
-    }
     stages {
         stage('Provision') {
             agent {
-                label '3rd-CIBUS'
+                node {
+                    label '3rd-CIBUS'
+                    customWorkspace "workspace/pipeline-${env.BUILD_ID}"
+                }
             }
             steps {
                 echo 'Setup server ...'
                 script {
-                    API_PORT = Math.abs(new Random().nextInt() % 9999 + 1024)
+                    API_PORT = sh(returnStdout: true, script: 'awk -v min=1025 -v max=9999 \'BEGIN{srand(); print int(min+rand()*(max-min+1))}\'')
                 }
-                sh 'echo $API_PORT'
+                echo "API Port: ${API_PORT}"
+                sh 'printenv'
+                cleanWs()
             }
         }
         stage('Hypervisor Setup') {
+            environment {
+                HV = "${HYPERVISOR}"
+            }
             parallel {
                 stage('Hyper-V') {
-                    when {
-                        anyOf {
-                            environment name: 'HYPERVISOR', value: '1'
-                            environment name: 'HYPERVISOR', value: '4'
+                    agent {
+                        node {
+                            label '3rd-CIVAN'
+                            customWorkspace "workspace/pipeline-hyperv-${env.BUILD_ID}"
                         }
+                    }
+                    when {
+                        expression { HV == '1' || HV == '3'}
                     }
                     steps {
                         echo 'hyper-v'
+                        cleanWs()
                     }
                 }
                 stage('ESXi') {
-                    when {
-                        anyOf {
-                            environment name: 'HYPERVISOR', value: '2'
-                            environment name: 'HYPERVISOR', value: '4'
+                    agent {
+                        node {
+                            label '3rd-CIVAN'
+                            customWorkspace "workspace/pipeline-esxi-${env.BUILD_ID}"
                         }
+                    }
+                    when {
+                        expression { HV == '2' || HV == '3'}
                     }
                     steps {
                         echo 'esxi'
+                        cleanWs()
                     }
                 }
             }
