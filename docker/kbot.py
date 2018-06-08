@@ -60,7 +60,7 @@ def download(logger, url, path):
 def main(args):
     """Programe bridger starts from here."""
     # Print all avaliable arguments passed in.
-    logger = hwlogging.Logger(__file__).logger
+    logger = hwlogging.Logger("kbot.log", "/kernels/").logger
     logger.info("Working on kernel: {0}.".format(args.kernel_name))
     logger.info("Brew API address: {0}.".format(args.brew_api))
     logger.info("Brew task ID: {0}.".format(args.id))

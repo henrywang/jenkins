@@ -11,7 +11,7 @@ class Logger():
     def __init__(
         self,
         _log_file_name,
-        _log_file_path="/var/log/",
+        _log_file_path,
         _max_logging_file_size=10485760,
         _max_logging_file_count=5
     ):

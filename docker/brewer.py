@@ -22,7 +22,7 @@ class Brewer():
         """Init variables and logger."""
         self.name = name
         self._api = api
-        self._logger = hwlogging.Logger(__name__).logger
+        self._logger = hwlogging.Logger("brewer.log", "/kernels/").logger
 
     def _get_proxy(self):
         return ServerProxy(self._api)
