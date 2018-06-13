@@ -5,7 +5,7 @@ LABEL maintainer="Xiaofeng Wang" \
       description="Kernel CI multi function image"
 
 # pipenv needs LANG and LC_ALL
-ENV LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 DATADIR=/kernels AUTHORIZED_KEYS_FILE=/authorized_keys USERID=33 GROUPID=33 OWNER=data
+ENV LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 DATADIR=/kernels NFSDIR=/kernels/nfs AUTHORIZED_KEYS_FILE=/authorized_keys USERID=33 GROUPID=33 OWNER=data
 
 RUN dnf -y update \
       && dnf -y install which python3-pip openssh-server openssh-clients rssh \
@@ -15,7 +15,7 @@ RUN dnf -y update \
       && chmod a+x /usr/bin/rssh \
       && groupadd --non-unique --gid $GROUPID data \
       && useradd --non-unique --uid $USERID --gid $GROUPID --no-create-home --home-dir $DATADIR --shell /usr/bin/rssh $OWNER \
-      && mkdir -p "$DATADIR" \
+      && mkdir -p "$NFSDIR" \
       && chown $OWNER "$DATADIR" \
       && sed -i '/AuthorizedKeysFile/d' /etc/ssh/sshd_config \
       && echo "AuthorizedKeysFile $AUTHORIZED_KEYS_FILE" >>/etc/ssh/sshd_config \

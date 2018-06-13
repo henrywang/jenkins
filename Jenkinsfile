@@ -25,6 +25,8 @@ pipeline {
         stage('Omni Server Provision') {
             environment {
                 PUBLIC_KEY = credentials('3rd_id_rsa_pub')
+                NFS_IP = credentials('nfs-ip')
+                NFS_PATH = credentials('nfs-path')
             }
             steps {
                 echo 'Running Omni Container...'
@@ -33,8 +35,11 @@ pipeline {
                     sudo docker pull henrywangxf/jenkins:latest
                     sudo docker ps --quiet --all --filter 'name=omni-${API_PORT}' | sudo xargs --no-run-if-empty docker rm -f
                     sudo docker volume ls --quiet --filter 'name=kernels-volume-${API_PORT}' | sudo xargs --no-run-if-empty docker volume rm
+                    sudo docker volume inspect nfs > /dev/null 2>&1 || \
+                        sudo docker volume create --driver local \
+                        --opt type=nfs --opt o=addr=${NFS_IP} --opt device=:${NFS_PATH} nfs
 	                sudo docker run -d --name omni-${API_PORT} --restart=always \
-                        -p ${API_PORT}:22 -v kernels-volume-${API_PORT}:/kernels \
+                        -p ${API_PORT}:22 -v kernels-volume-${API_PORT}:/kernels -v nfs:/kernels/nfs \
                         --network jenkins --security-opt label=disable \
                         -e AUTHORIZED_KEYS=\"${PUBLIC_KEY}\" \
                         henrywangxf/jenkins:latest
