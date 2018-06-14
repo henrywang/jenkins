@@ -10,6 +10,7 @@ pipeline {
         version = '3.10.0'
         release = '900.el7.test'
         id = '16636204'
+        RHEL_VER = sh(returnStdout: true, script: "[[ $version = 4.* ]] && echo "8" || echo "7"")
         API_PORT = sh(returnStdout: true, script: 'awk -v min=1025 -v max=9999 \'BEGIN{srand(); print int(min+rand()*(max-min+1))}\'').trim()
         HV = sh(returnStdout: true, script: """
                 if [[ $release = *"hyperv"* ]] || [[ $release = *"hyper-v"* ]] || [[ $release = *"hyper"* ]]; then 
@@ -66,8 +67,18 @@ pipeline {
             }
         }
         stage('Hypervisor Matrix') {
+            environment {
+                HV_USERNAME:HV_PASSWORD = credentials('hyperv-domain-login')
+                OMNI_IP = credentials('omni-server-ip')
+                OMNI_USER = credentials('omni-scp-username')
+            }
             parallel {
                 stage('Hyper-V 2016 Gen2') {
+                    environment {
+                        FIRMWARE = 'Gen2'
+                        HOST_ID = '2016-AUTO'
+                        IMAGE = "image-2016-${RHEL_VER}.vhdx"
+                    }
                     agent {
                         node {
                             label '3rd-CIVAN'
@@ -84,6 +95,11 @@ pipeline {
                     }
                 }
                 stage('Hyper-V 2012R2 Gen1') {
+                    environment {
+                        FIRMWARE = 'Gen1'
+                        HOST_ID = '2012R2-AUTO'
+                        IMAGE = "image-2012r2-${RHEL_VER}.vhdx"
+                    }
                     agent {
                         node {
                             label '3rd-CIVAN'
@@ -100,6 +116,11 @@ pipeline {
                     }
                 }
                 stage('Hyper-V 2012 Gen1') {
+                    environment {
+                        FIRMWARE = 'Gen1'
+                        HOST_ID = '2012-72-132'
+                        IMAGE = "image-2012-${RHEL_VER}.vhdx"
+                    }
                     agent {
                         node {
                             label '3rd-CIVAN'
