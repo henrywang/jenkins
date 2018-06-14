@@ -170,8 +170,12 @@ switch ($action)
             VMSetup -vmPath $vmPath -vmName $vmNameB -image $image -omni_ip $omni_ip -omni_port $omni_port -omni_user $omni_user -gen2 $gen2 -switchName $switchName -cpuCount $cpuCount -mem $memorySize -snapshotName $snapshotName -kernelName $kernelName
         }
     }
-    "remove"
+    "del"
     {
         VMRemove -vmName $vmName
+        if ($dual)
+        {
+            VMRemove -vmName $vmNameB
+        }
     }
 }

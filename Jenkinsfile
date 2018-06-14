@@ -1,6 +1,5 @@
 def RunPowershellCommand(psCmd) {
     bat "powershell.exe -NonInteractive -ExecutionPolicy Bypass -Command \"[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;$psCmd;EXIT \$global:LastExitCode\""
-    //powershell (psCmd)
 }
 pipeline {
     agent {
@@ -14,6 +13,7 @@ pipeline {
         version = '3.10.0'
         release = '902.el7.test'
         id = '16710241'
+        owner = 'xiaofwan'
         RHEL_VER = sh(returnStdout: true, script: "[[ $version = 4.* ]] && echo '8' || echo '7'").trim()
         API_PORT = sh(returnStdout: true, script: 'awk -v min=1025 -v max=9999 \'BEGIN{srand(); print int(min+rand()*(max-min+1))}\'').trim()
         HV = sh(returnStdout: true, script: """
@@ -100,8 +100,20 @@ pipeline {
                         echo 'Checkout LISA Code'
                         checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'lis']], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/LIS/lis-test.git']]]
                         RunPowershellCommand(".\\runner.ps1 -action run")
-                        echo 'Test Running'
-                        // cleanWs()
+                    }
+                    post {
+                        always {
+                            // Delete VM(s)
+                            RunPowershellCommand(".\\runner.ps1 -action del")
+                            // Upload result to omni server
+                            RunPowershellCommand(".\\runner.ps1 -action put")
+                            // Publish jnunt test result report
+                            junit allowEmptyResults: true, testResults: 'report*.xml'
+                            // Archive log files
+                            archiveArtifacts allowEmptyArchive: true, artifacts: 'TestResults/**/*.*'
+                            // Clear workspace
+                            cleanWs()
+                        }
                     }
                 }
                 stage('Function Test On Hyper-V 2016 Gen2') {
@@ -244,6 +256,7 @@ pipeline {
                 sudo docker ps --quiet --all --filter 'name=omni-${API_PORT}' | sudo xargs --no-run-if-empty docker rm -f
                 sudo docker volume ls --quiet --filter 'name=kernels-volume-${API_PORT}' | sudo xargs --no-run-if-empty docker volume rm
                 sudo docker volume ls --quiet --filter 'name=nfs' | sudo xargs --no-run-if-empty docker volume rm
+                sudo docker rmi -f henrywangxf/jenkins:latest
             """
             cleanWs()
         }

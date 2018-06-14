@@ -27,7 +27,7 @@
             <suiteName>Downstream</suiteName>
             <suiteTests>
                 <suiteTest>VMHeartbeat</suiteTest>
-                <suiteTest>Verify_LIS_Modules</suiteTest>
+                <!-- <suiteTest>Verify_LIS_Modules</suiteTest>
                 <suiteTest>initrd_modules_check</suiteTest>
                 <suiteTest>TimeSync</suiteTest>
                 <suiteTest>FCOPY_file_exists</suiteTest>
@@ -37,7 +37,7 @@
                 <suiteTest>VHDx_MultiDiskSCSI_Dynamic</suiteTest>
                 <suiteTest>VHDxResizeToBigger512</suiteTest>
                 <suiteTest>NMI_Verify_Interrupt</suiteTest>
-                <suiteTest>DM_loaded</suiteTest>
+                <suiteTest>DM_loaded</suiteTest> -->
             </suiteTests>
         </suite>
 
