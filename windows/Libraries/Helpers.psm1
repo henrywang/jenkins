@@ -39,7 +39,7 @@ function VMStop([String] $vmName)
     return $true
 }
 
-function VMRemove([String]$vmName, [String]$hvServer, [String]$vmPath)
+function VMRemove([String]$vmName)
 {
     # Check the vm, if exists, then delete
     Get-VM -Name $vmName -ErrorAction "SilentlyContinue" | out-null
@@ -82,21 +82,18 @@ function VMRemove([String]$vmName, [String]$hvServer, [String]$vmPath)
         write-host "REMOVING .vhd VM DISK FILE - ${vhd}."
         Remove-Item -Path $vhd -Force
     }
-
-    write-host "REMOVING .vhd VM DISK FILE from ${vmPath}."
-    Remove-Item -Path $vmPath -Force
 }
 
-function GetIPv4ViaKVP( [String] $vmName, [String] $server)
+function GetIPv4ViaKVP([String] $vmName)
 {
-    $vmObj = Get-WmiObject -Namespace root\virtualization\v2 -Query "Select * From Msvm_ComputerSystem Where ElementName=`'$vmName`'" -ComputerName $server
+    $vmObj = Get-WmiObject -Namespace root\virtualization\v2 -Query "Select * From Msvm_ComputerSystem Where ElementName=`'$vmName`'"
     if (-not $vmObj)
     {
         Write-Error -Message "GetIPv4ViaKVP: Unable to create Msvm_ComputerSystem object" -Category ObjectNotFound -ErrorAction SilentlyContinue
         return $null
     }
 
-    $kvp = Get-WmiObject -Namespace root\virtualization\v2 -Query "Associators of {$vmObj} Where AssocClass=Msvm_SystemDevice ResultClass=Msvm_KvpExchangeComponent" -ComputerName $server
+    $kvp = Get-WmiObject -Namespace root\virtualization\v2 -Query "Associators of {$vmObj} Where AssocClass=Msvm_SystemDevice ResultClass=Msvm_KvpExchangeComponent"
     if (-not $kvp)
     {
         Write-Error -Message "GetIPv4ViaKVP: Unable to create KVP exchange component" -Category ObjectNotFound -ErrorAction SilentlyContinue
@@ -148,12 +145,12 @@ function GetIPv4ViaKVP( [String] $vmName, [String] $server)
     return $null
 }
 
-function WaitForVMToStartKVP([String] $vmName, [String] $server, [int] $timeout)
+function WaitForVMToStartKVP([String] $vmName, [int] $timeout)
 {
     $waitTimeOut = $timeout
     while ($waitTimeOut -gt 0)
     {
-        $ipv4 = GetIPv4ViaKVP $vmName $server
+        $ipv4 = GetIPv4ViaKVP $vmName
         if ($ipv4)
         {
             return $true

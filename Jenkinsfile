@@ -1,3 +1,7 @@
+def RunPowershellCommand(psCmd) {
+    bat "powershell.exe -NonInteractive -ExecutionPolicy Bypass -Command \"[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;$psCmd;EXIT \$global:LastExitCode\""
+    //powershell (psCmd)
+}
 pipeline {
     agent {
         node {
@@ -8,9 +12,9 @@ pipeline {
     environment {
         name = 'kernel'
         version = '3.10.0'
-        release = '900.el7.test'
-        id = '16636204'
-        RHEL_VER = sh(returnStdout: true, script: "[[ $version = 4.* ]] && echo "8" || echo "7"")
+        release = '902.el7.test'
+        id = '16710241'
+        RHEL_VER = sh(returnStdout: true, script: "[[ $version = 4.* ]] && echo '8' || echo '7'").trim()
         API_PORT = sh(returnStdout: true, script: 'awk -v min=1025 -v max=9999 \'BEGIN{srand(); print int(min+rand()*(max-min+1))}\'').trim()
         HV = sh(returnStdout: true, script: """
                 if [[ $release = *"hyperv"* ]] || [[ $release = *"hyper-v"* ]] || [[ $release = *"hyper"* ]]; then 
@@ -68,14 +72,40 @@ pipeline {
         }
         stage('Hypervisor Matrix') {
             environment {
-                HV_USERNAME:HV_PASSWORD = credentials('hyperv-domain-login')
+                DOMAIN = credentials('hyperv-domain-login')
                 OMNI_IP = credentials('omni-server-ip')
                 OMNI_USER = credentials('omni-scp-username')
             }
             parallel {
-                stage('Hyper-V 2016 Gen2') {
+                stage('Smoking Test On Hyper-V 2016 Gen1') {
                     environment {
-                        FIRMWARE = 'Gen2'
+                        HOST_ID = '2016-AUTO'
+                        IMAGE = "image-2016-${RHEL_VER}.vhdx"
+                    }
+                    agent {
+                        node {
+                            label '3rd-CIVAN'
+                            customWorkspace "workspace/pipeline-2016-g1-${env.BUILD_ID}"
+                        }
+                    }
+                    when {
+                        expression { HV == '1' || HV == '3'}
+                    }
+                    steps {
+                        echo 'Checkout VM Provision Code'
+                        checkout scm
+                        echo 'Gen2 VM Provision on 2016'
+                        powershell 'Get-ChildItem Env:'
+                        RunPowershellCommand(".\\runner.ps1 -action add")
+                        echo 'Checkout LISA Code'
+                        checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'lis']], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/LIS/lis-test.git']]]
+                        RunPowershellCommand(".\\runner.ps1 -action run")
+                        echo 'Test Running'
+                        // cleanWs()
+                    }
+                }
+                stage('Function Test On Hyper-V 2016 Gen2') {
+                    environment {
                         HOST_ID = '2016-AUTO'
                         IMAGE = "image-2016-${RHEL_VER}.vhdx"
                     }
@@ -89,14 +119,17 @@ pipeline {
                         expression { HV == '1' || HV == '3'}
                     }
                     steps {
-                        echo 'Gen2 VM Provision on 2016'
+                        // echo 'Checkout VM Provision Code'
+                        // checkout scm
+                        // echo 'Gen2 VM Provision on 2016'
+                        // powershell 'Get-ChildItem Env:'
+                        // RunPowershellCommand(".\\runner.ps1 -action add -dual -gen2")
                         echo 'Test Running'
                         cleanWs()
                     }
                 }
                 stage('Hyper-V 2012R2 Gen1') {
                     environment {
-                        FIRMWARE = 'Gen1'
                         HOST_ID = '2012R2-AUTO'
                         IMAGE = "image-2012r2-${RHEL_VER}.vhdx"
                     }
@@ -117,7 +150,6 @@ pipeline {
                 }
                 stage('Hyper-V 2012 Gen1') {
                     environment {
-                        FIRMWARE = 'Gen1'
                         HOST_ID = '2012-72-132'
                         IMAGE = "image-2012-${RHEL_VER}.vhdx"
                     }
@@ -211,6 +243,7 @@ pipeline {
             sh """
                 sudo docker ps --quiet --all --filter 'name=omni-${API_PORT}' | sudo xargs --no-run-if-empty docker rm -f
                 sudo docker volume ls --quiet --filter 'name=kernels-volume-${API_PORT}' | sudo xargs --no-run-if-empty docker volume rm
+                sudo docker volume ls --quiet --filter 'name=nfs' | sudo xargs --no-run-if-empty docker volume rm
             """
             cleanWs()
         }
