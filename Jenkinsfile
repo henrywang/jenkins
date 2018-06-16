@@ -70,14 +70,14 @@ pipeline {
                 cleanWs()
             }
         }
-        stage('Hypervisor Matrix') {
+        stage('Hypervisor Test Matrix') {
             environment {
                 DOMAIN = credentials('hyperv-domain-login')
                 OMNI_IP = credentials('omni-server-ip')
                 OMNI_USER = credentials('omni-scp-username')
             }
             parallel {
-                stage('Smoking Test On Hyper-V 2016 Gen1') {
+                stage('Smoking Test - Hyper-V 2016 Gen1') {
                     environment {
                         HOST_ID = '2016-AUTO'
                         IMAGE = "image-2016-${RHEL_VER}.vhdx"
@@ -85,7 +85,7 @@ pipeline {
                     agent {
                         node {
                             label '3rd-CIVAN'
-                            customWorkspace "workspace/pipeline-2016-g1-${env.BUILD_ID}"
+                            customWorkspace "workspace/pipeline-2016-g1-smoking-${env.BUILD_ID}"
                         }
                     }
                     when {
@@ -94,7 +94,7 @@ pipeline {
                     steps {
                         echo 'Checkout VM Provision Code'
                         checkout scm
-                        echo 'Gen2 VM Provision on 2016'
+                        echo 'Gen1 VM Provision on 2016'
                         powershell 'Get-ChildItem Env:'
                         RunPowershellCommand(".\\runner.ps1 -action add")
                         echo 'Checkout LISA Code'
@@ -116,7 +116,83 @@ pipeline {
                         }
                     }
                 }
-                stage('Function Test On Hyper-V 2016 Gen2') {
+                stage('Smoking Test - Hyper-V 2012R2 Gen2') {
+                    environment {
+                        HOST_ID = '2012R2-AUTO'
+                        IMAGE = "image-2012r2-${RHEL_VER}.vhdx"
+                    }
+                    agent {
+                        node {
+                            label '3rd-CIVAN'
+                            customWorkspace "workspace/pipeline-2012r2-g2-smoking-${env.BUILD_ID}"
+                        }
+                    }
+                    when {
+                        expression { HV == '1' || HV == '3'}
+                    }
+                    steps {
+                        echo 'Checkout VM Provision Code'
+                        checkout scm
+                        echo 'Gen2 VM Provision on 2012R2'
+                        RunPowershellCommand(".\\runner.ps1 -action add -gen2")
+                        echo 'Checkout LISA Code'
+                        checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'lis']], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/LIS/lis-test.git']]]
+                        RunPowershellCommand(".\\runner.ps1 -action run -gen2")
+                    }
+                    post {
+                        always {
+                            // Delete VM(s)
+                            RunPowershellCommand(".\\runner.ps1 -action del -gen2")
+                            // Upload result to omni server
+                            RunPowershellCommand(".\\runner.ps1 -action put -gen2")
+                            // Publish jnunt test result report
+                            junit allowEmptyResults: true, testResults: 'report*.xml'
+                            // Archive log files
+                            archiveArtifacts allowEmptyArchive: true, artifacts: 'TestResults/**/*.*'
+                            // Clear workspace
+                            cleanWs()
+                        }
+                    }
+                }
+                stage('Smoking Test - Hyper-V 2012 Gen1') {
+                    environment {
+                        HOST_ID = '2012-72-132'
+                        IMAGE = "image-2012-${RHEL_VER}.vhdx"
+                    }
+                    agent {
+                        node {
+                            label '3rd-CIVAN'
+                            customWorkspace "workspace/pipeline-2012-g1-smoking-${env.BUILD_ID}"
+                        }
+                    }
+                    when {
+                        expression { HV == '1' || HV == '3'}
+                    }
+                    steps {
+                        echo 'Checkout VM Provision Code'
+                        checkout scm
+                        echo 'Gen1 VM Provision on 2012'
+                        RunPowershellCommand(".\\runner.ps1 -action add")
+                        echo 'Checkout LISA Code'
+                        checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'lis']], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/LIS/lis-test.git']]]
+                        RunPowershellCommand(".\\runner.ps1 -action run")
+                    }
+                    post {
+                        always {
+                            // Delete VM(s)
+                            RunPowershellCommand(".\\runner.ps1 -action del")
+                            // Upload result to omni server
+                            RunPowershellCommand(".\\runner.ps1 -action put")
+                            // Publish jnunt test result report
+                            junit allowEmptyResults: true, testResults: 'report*.xml'
+                            // Archive log files
+                            archiveArtifacts allowEmptyArchive: true, artifacts: 'TestResults/**/*.*'
+                            // Clear workspace
+                            cleanWs()
+                        }
+                    }
+                }
+                stage('Functional Test - Hyper-V 2016 Gen2') {
                     environment {
                         HOST_ID = '2016-AUTO'
                         IMAGE = "image-2016-${RHEL_VER}.vhdx"
@@ -131,16 +207,31 @@ pipeline {
                         expression { HV == '1' || HV == '3'}
                     }
                     steps {
-                        // echo 'Checkout VM Provision Code'
-                        // checkout scm
-                        // echo 'Gen2 VM Provision on 2016'
-                        // powershell 'Get-ChildItem Env:'
-                        // RunPowershellCommand(".\\runner.ps1 -action add -dual -gen2")
-                        echo 'Test Running'
-                        cleanWs()
+                        echo 'Checkout VM Provision Code'
+                        checkout scm
+                        echo 'Gen2 VM Provision on 2016'
+                        powershell 'Get-ChildItem Env:'
+                        RunPowershellCommand(".\\runner.ps1 -action add -dual -gen2")
+                        echo 'Checkout LISA Code'
+                        checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'lis']], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/LIS/lis-test.git']]]
+                        RunPowershellCommand(".\\runner.ps1 -action run -dual -gen2")
+                    }
+                    post {
+                        always {
+                            // Delete VM(s)
+                            RunPowershellCommand(".\\runner.ps1 -action del -dual -gen2")
+                            // Upload result to omni server
+                            RunPowershellCommand(".\\runner.ps1 -action put -dual -gen2")
+                            // Publish jnunt test result report
+                            junit allowEmptyResults: true, testResults: 'report*.xml'
+                            // Archive log files
+                            archiveArtifacts allowEmptyArchive: true, artifacts: 'TestResults/**/*.*'
+                            // Clear workspace
+                            cleanWs()
+                        }
                     }
                 }
-                stage('Hyper-V 2012R2 Gen1') {
+                stage('Functional Test - Hyper-V 2012R2 Gen1') {
                     environment {
                         HOST_ID = '2012R2-AUTO'
                         IMAGE = "image-2012r2-${RHEL_VER}.vhdx"
@@ -155,12 +246,30 @@ pipeline {
                         expression { HV == '1' || HV == '3'}
                     }
                     steps {
+                        echo 'Checkout VM Provision Code'
+                        checkout scm
                         echo 'Gen1 VM Provision on 2012R2'
-                        echo 'Test Running'
-                        cleanWs()
+                        RunPowershellCommand(".\\runner.ps1 -action add -dual")
+                        echo 'Checkout LISA Code'
+                        checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'lis']], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/LIS/lis-test.git']]]
+                        RunPowershellCommand(".\\runner.ps1 -action run -dual")
+                    }
+                    post {
+                        always {
+                            // Delete VM(s)
+                            RunPowershellCommand(".\\runner.ps1 -action del -dual")
+                            // Upload result to omni server
+                            RunPowershellCommand(".\\runner.ps1 -action put -dual")
+                            // Publish jnunt test result report
+                            junit allowEmptyResults: true, testResults: 'report*.xml'
+                            // Archive log files
+                            archiveArtifacts allowEmptyArchive: true, artifacts: 'TestResults/**/*.*'
+                            // Clear workspace
+                            cleanWs()
+                        }
                     }
                 }
-                stage('Hyper-V 2012 Gen1') {
+                stage('Functional Test - Hyper-V 2012 Gen1') {
                     environment {
                         HOST_ID = '2012-72-132'
                         IMAGE = "image-2012-${RHEL_VER}.vhdx"
@@ -175,9 +284,27 @@ pipeline {
                         expression { HV == '1' || HV == '3'}
                     }
                     steps {
+                        echo 'Checkout VM Provision Code'
+                        checkout scm
                         echo 'Gen1 VM Provision on 2012'
-                        echo 'Test Running'
-                        cleanWs()
+                        RunPowershellCommand(".\\runner.ps1 -action add -dual")
+                        echo 'Checkout LISA Code'
+                        checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'lis']], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/LIS/lis-test.git']]]
+                        RunPowershellCommand(".\\runner.ps1 -action run -dual")
+                    }
+                    post {
+                        always {
+                            // Delete VM(s)
+                            RunPowershellCommand(".\\runner.ps1 -action del -dual")
+                            // Upload result to omni server
+                            RunPowershellCommand(".\\runner.ps1 -action put -dual")
+                            // Publish jnunt test result report
+                            junit allowEmptyResults: true, testResults: 'report*.xml'
+                            // Archive log files
+                            archiveArtifacts allowEmptyArchive: true, artifacts: 'TestResults/**/*.*'
+                            // Clear workspace
+                            cleanWs()
+                        }
                     }
                 }
                 stage('ESXi 6.7 EFI') {
@@ -254,10 +381,11 @@ pipeline {
             echo 'Remove volume'
             sh """
                 sudo docker ps --quiet --all --filter 'name=omni-${API_PORT}' | sudo xargs --no-run-if-empty docker rm -f
-                sudo docker volume ls --quiet --filter 'name=kernels-volume-${API_PORT}' | sudo xargs --no-run-if-empty docker volume rm
+
                 sudo docker volume ls --quiet --filter 'name=nfs' | sudo xargs --no-run-if-empty docker volume rm
                 sudo docker rmi -f henrywangxf/jenkins:latest
             """
+            // sudo docker volume ls --quiet --filter 'name=kernels-volume-${API_PORT}' | sudo xargs --no-run-if-empty docker volume rm
             cleanWs()
         }
     }
