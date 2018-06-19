@@ -9,11 +9,11 @@ pipeline {
         }
     }
     environment {
-        name = 'kernel'
-        version = '3.10.0'
-        release = '902.el7.test'
-        id = '16710241'
-        owner = 'xiaofwan'
+        // name = 'kernel'
+        // version = '3.10.0'
+        // release = '902.el7.test'
+        // id = '16710241'
+        // owner = 'xiaofwan'
         RHEL_VER = sh(returnStdout: true, script: "[[ $version = 4.* ]] && echo '8' || echo '7'").trim()
         API_PORT = sh(returnStdout: true, script: 'awk -v min=1025 -v max=9999 \'BEGIN{srand(); print int(min+rand()*(max-min+1))}\'').trim()
         HV = sh(returnStdout: true, script: """
