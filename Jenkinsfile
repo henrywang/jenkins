@@ -20,6 +20,9 @@ pipeline {
                     echo "3"
                 fi
                 """).trim()
+        FROM = credentials('email-3rd-qe-list')
+        SMTP - credentials('smtp-server-address')
+        TASK_URL_PREFIX = credentials('task-url-prefix')
     }
     stages {
         stage('Omni Server Provision') {
