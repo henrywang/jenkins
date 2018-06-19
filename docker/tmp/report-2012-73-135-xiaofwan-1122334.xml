@@ -1,0 +1,17 @@
+<testsuite name="VMBUS" timestamp="2/7/2018 11:05:09 AM">
+  <properties>
+    <property name="hyperv.version" value="6.3.9600" />
+    <property name="kernel.version" value="3.10.0-843.el7.x86_64" />
+    <property name="firmware.version" value="EFI" />
+  </properties>
+  <testcase name="VMBus_protocol_version" time="1.22">
+    <properties>
+      <property name="tc_covered" value="RHEL6-00000,RHEL7-37732" />
+    </properties>
+  </testcase>
+  <testcase name="VMBus_verify_interrupts" time="1.17">
+    <properties>
+      <property name="tc_covered" value="RHEL6-00000,RHEL7-37483" />
+    </properties>
+  </testcase>
+</testsuite>

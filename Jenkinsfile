@@ -20,6 +20,9 @@ pipeline {
                     echo "3"
                 fi
                 """).trim()
+        FROM = credentials('email-3rd-qe-list')
+        SMTP = credentials('smtp-server-address')
+        TASK_URL_PREFIX = credentials('task-url-prefix')
     }
     stages {
         stage('Omni Server Provision') {
@@ -394,6 +397,10 @@ pipeline {
             echo 'Remove volume'
             sh """
                 sudo docker ps --quiet --all --filter 'name=omni-${API_PORT}' | sudo xargs --no-run-if-empty docker rm -f
+                sudo docker run --rm --name mailbot-${API_PORT} \
+                        -v kernels-volume-${API_PORT}:/kernels --network jenkins \
+                        henrywangxf/jenkins:latest \
+                        python3 ./mailbot.py --path /kernels --mail ${FROM} --task ${TASK_URL_PREFIX} --smtp ${SMTP} --hv ${HV}
                 sudo docker volume ls --quiet --filter 'name=kernels-volume-${API_PORT}' | sudo xargs --no-run-if-empty docker volume rm
                 sudo docker volume ls --quiet --filter 'name=nfs' | sudo xargs --no-run-if-empty docker volume rm
                 sudo docker rmi -f henrywangxf/jenkins:latest
