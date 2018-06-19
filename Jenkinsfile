@@ -9,11 +9,6 @@ pipeline {
         }
     }
     environment {
-        // name = 'kernel'
-        // version = '3.10.0'
-        // release = '902.el7.test'
-        // id = '16710241'
-        // owner = 'xiaofwan'
         RHEL_VER = sh(returnStdout: true, script: "[[ $version = 4.* ]] && echo '8' || echo '7'").trim()
         API_PORT = sh(returnStdout: true, script: 'awk -v min=1025 -v max=9999 \'BEGIN{srand(); print int(min+rand()*(max-min+1))}\'').trim()
         HV = sh(returnStdout: true, script: """
@@ -399,7 +394,7 @@ pipeline {
             echo 'Remove volume'
             sh """
                 sudo docker ps --quiet --all --filter 'name=omni-${API_PORT}' | sudo xargs --no-run-if-empty docker rm -f
-
+                sudo docker volume ls --quiet --filter 'name=kernels-volume-${API_PORT}' | sudo xargs --no-run-if-empty docker volume rm
                 sudo docker volume ls --quiet --filter 'name=nfs' | sudo xargs --no-run-if-empty docker volume rm
                 sudo docker rmi -f henrywangxf/jenkins:latest
             """
@@ -411,6 +406,6 @@ pipeline {
         skipDefaultCheckout()
         timestamps()
         buildDiscarder(logRotator(numToKeepStr:'10'))
-        // timeout(time: 6, unit: 'HOURS')
+        timeout(time: 6, unit: 'HOURS')
     }
 }
