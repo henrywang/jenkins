@@ -1,0 +1,69 @@
+<testsuites>
+  <testsuite name="Downstream" timestamp="6/23/2018 2:34:45 AM">
+    <properties>
+      <property name="hyperv.version" value="6.3.9600" />
+      <property name="kernel.version" value="3.10.0-862.el7.Z.x86_64" />
+      <property name="firmware.version" value="EFI" />
+    </properties>
+    <testcase name="VMHeartbeat" time="1.42">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34342,RHEL7-40106" />
+      </properties>
+    </testcase>
+    <testcase name="Verify_LIS_Modules" time="1.83">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34340,RHEL7-12131" />
+      </properties>
+    </testcase>
+    <testcase name="initrd_modules_check" time="1.30">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34356,RHEL7-12124" />
+      </properties>
+    </testcase>
+    <testcase name="TimeSync" time="1.40">
+      <properties>
+        <property name="tc_covered" value="RHEL6-0000,RHEL-130329" />
+      </properties>
+    </testcase>
+    <testcase name="FCOPY_file_exists" time="3.20">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34509,RHEL7-35680" />
+      </properties>
+    </testcase>
+    <testcase name="KVP_Basic" time="2.21">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34493,RHEL7-12076" />
+      </properties>
+    </testcase>
+    <testcase name="VMBus_protocol_version" time="2.12">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34316,RHEL7-37732" />
+      </properties>
+    </testcase>
+    <testcase name="VMBus_verify_interrupts" time="2.53">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34317,RHEL7-37483" />
+      </properties>
+    </testcase>
+    <testcase name="VHDx_MultiDiskSCSI_Dynamic" time="6.23">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34434,RHEL7-34967" />
+      </properties>
+    </testcase>
+    <testcase name="VHDxResizeToBigger512" time="4.64">
+      <properties>
+        <property name="tc_covered" value="STOR-VHDx-01a" />
+      </properties>
+    </testcase>
+    <testcase name="NMI_Verify_Interrupt" time="2.17">
+      <properties>
+        <property name="tc_covered" value="RHEL6-0000,RHEL7-35676" />
+      </properties>
+    </testcase>
+    <testcase name="DM_loaded" time="2.91">
+      <properties>
+        <property name="tc_covered" value="RHEL6-0000,RHEL7-12158" />
+      </properties>
+    </testcase>
+  </testsuite>
+</testsuites>

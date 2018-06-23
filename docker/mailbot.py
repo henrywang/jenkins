@@ -32,8 +32,13 @@ def parse_xml(path, logger):
             file_meta["type"] = "functional"
             file_meta["hv"] = "-".join(file_info_list[:-2])
 
-        root = et.parse(xml_file)
-        for element in root.findall("./properties/property"):
+        tree = et.parse(xml_file)
+        root = tree.getroot()
+        if root.tag == "testsuites":
+            prefix = "testsuite/"
+        else:
+            prefix = ""
+        for element in root.findall("./{0}properties/property".format(prefix)):
             if element.get("name") == "kernel.version":
                 file_meta["kernel"] = element.get("value")
             if element.get("name") == "firmware.version":
@@ -41,7 +46,9 @@ def parse_xml(path, logger):
 
         file_meta["total"] = sum(1 for _ in root.iter("testcase"))
         # Get test case name from string like 'Test CDmount Failed.'
-        failed = [x.text[5:-8] for x in root.findall("./testcase/failure")]
+        failed = [x.text[5:-8] for x in root.findall(
+            "./{0}testcase/failure".format(prefix)
+        )]
         file_meta["total_failed"] = len(failed)
         file_meta["failed_cases"] = failed
         logger.info("Test Info: {0}".format(file_meta))

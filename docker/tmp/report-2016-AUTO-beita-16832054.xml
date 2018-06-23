@@ -1,0 +1,507 @@
+<testsuites>
+  <testsuite name="Functional" timestamp="6/23/2018 2:37:44 AM">
+    <properties>
+      <property name="hyperv.version" value="10.0.14393" />
+      <property name="kernel.version" value="3.10.0-862.el7.Z.x86_64" />
+      <property name="firmware.version" value="EFI" />
+    </properties>
+    <testcase name="VMHeartbeat" time="1.35">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34342,RHEL7-40106" />
+      </properties>
+    </testcase>
+    <testcase name="VMHeartBeat_ISOInstallation" time="1.46">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34352,RHEL7-12142" />
+      </properties>
+    </testcase>
+    <testcase name="Verify_LIS_Modules" time="2.00">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34340,RHEL7-12131" />
+      </properties>
+    </testcase>
+    <testcase name="initrd_modules_check" time="1.98">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34356,RHEL7-12124" />
+      </properties>
+    </testcase>
+    <testcase name="VerifyIntegratedTimeSyncService" time="2.76">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34343,RHEL7-12203" />
+      </properties>
+    </testcase>
+    <testcase name="Multi_Cpu_Test" time="13.09">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34335,RHEL7-12244" />
+      </properties>
+    </testcase>
+    <testcase name="VCPU_verify_online" time="1.69">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34330,RHEL7-39677" />
+      </properties>
+    </testcase>
+    <testcase name="CDmount" time="2.20">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34453,RHEL7-12179" />
+      </properties>
+    </testcase>
+    <testcase name="TimeSync" time="1.35">
+      <properties>
+        <property name="tc_covered" value="RHEL6-0000,RHEL-130329" />
+      </properties>
+    </testcase>
+    <testcase name="LISdaemons_selinux_check" time="2.12">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34476,RHEL7-12156" />
+      </properties>
+    </testcase>
+    <testcase name="Check_HypervDaemons_Files_Status" time="2.01">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34477,RHEL7-39932" />
+      </properties>
+    </testcase>
+    <testcase name="CheckNuma" time="1.57">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34345,RHEL7-12148" />
+      </properties>
+    </testcase>
+    <testcase name="CheckNuma_Maximum" time="1.57">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34344,RHEL7-39909" />
+      </properties>
+    </testcase>
+    <testcase name="Disable_NUMA_By_Kernel" time="3.22">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34346,RHEL7-12149" />
+      </properties>
+    </testcase>
+    <testcase name="VerifyIntegratedShutdownService" time="1.70">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34341,RHEL7-12202" />
+      </properties>
+    </testcase>
+    <testcase name="check_clocksource" time="1.37">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34547,RHEL7-53958" />
+      </properties>
+    </testcase>
+    <testcase name="FCOPY_file_exists" time="5.96">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34509,RHEL7-35680" />
+      </properties>
+    </testcase>
+    <testcase name="FCOPY_overwrite" time="2.35">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34511,RHEL7-12160" />
+      </properties>
+    </testcase>
+    <testcase name="FCOPY_large_file" time="17.87">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34508,RHEL7-35681" />
+      </properties>
+    </testcase>
+    <testcase name="FCOPY_non_ascii" time="3.73">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34514,RHEL7-12169" />
+      </properties>
+    </testcase>
+    <testcase name="SQM_Basic" time="2.29">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34489,RHEL7-38956" />
+      </properties>
+    </testcase>
+    <testcase name="KVP_Basic" time="1.84">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34493,RHEL7-12076" />
+      </properties>
+    </testcase>
+    <testcase name="KVP_Add_Key_Values" time="2.32">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34501,RHEL7-12101" />
+      </properties>
+    </testcase>
+    <testcase name="KVP_Modify_Key_Values" time="3.37">
+      <properties>
+        <property name="tc_covered" value="RHEL6-47774,RHEL7-87251" />
+      </properties>
+    </testcase>
+    <testcase name="KVP_Remove_Key_Values" time="1.99">
+      <properties>
+        <property name="tc_covered" value="RHEL6-47775,RHEL7-87252" />
+      </properties>
+    </testcase>
+    <testcase name="KVP_Push_Key_Values" time="1.76">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34500,RHEL7-12100" />
+      </properties>
+    </testcase>
+    <testcase name="KVP_DeleteNonExistKVPOnGuest" time="0.91">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34492,RHEL7-35664" />
+      </properties>
+    </testcase>
+    <testcase name="KVP_ModifyNonExistKVPOnGuest" time="1.41">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34491,RHEL7-35665" />
+      </properties>
+    </testcase>
+    <testcase name="KVP_TestRescind" time="5.62">
+      <properties>
+        <property name="tc_covered" value="RHEL6-0000,RHEL7-12214" />
+      </properties>
+    </testcase>
+    <testcase name="VMBus_protocol_version" time="1.71">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34316,RHEL7-37732" />
+      </properties>
+    </testcase>
+    <testcase name="VMBus_verify_interrupts" time="2.39">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34317,RHEL7-37483" />
+      </properties>
+    </testcase>
+    <testcase name="VHDx_IDE_0_1_Dynamic" time="1.38">
+      <skipped />
+      <properties>
+        <property name="tc_covered" value="RHEL6-0000,RHEL-130221" />
+      </properties>
+    </testcase>
+    <testcase name="VHDx_IDE_0_1_Fixed" time="1.49">
+      <skipped />
+      <properties>
+        <property name="tc_covered" value="RHEL6-0000,RHEL-130223" />
+      </properties>
+    </testcase>
+    <testcase name="VHDx_4k_IDE_0_1_Dynamic" time="1.58">
+      <skipped />
+      <properties>
+        <property name="tc_covered" value="RHEL6-34433,RHEL7-34966" />
+      </properties>
+    </testcase>
+    <testcase name="VHDx_4k_IDE_0_1_Fixed" time="1.28">
+      <skipped />
+      <properties>
+        <property name="tc_covered" value="RHEL6-34465,RHEL7-12191" />
+      </properties>
+    </testcase>
+    <testcase name="VHDx_MultiDiskSCSI_Dynamic" time="4.79">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34434,RHEL7-34967" />
+      </properties>
+    </testcase>
+    <testcase name="VHDx_MultiDiskSCSI_Fixed" time="5.28">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34466,RHEL7-12192" />
+      </properties>
+    </testcase>
+    <testcase name="VHDx_AddDiff_Disk_SCSI" time="2.00">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34435,RHEL7-37143" />
+      </properties>
+    </testcase>
+    <testcase name="VHDx_AddDiff_Disk_IDE" time="1.16">
+      <skipped />
+      <properties>
+        <property name="tc_covered" value="RHEL6-34435,RHEL7-37142" />
+      </properties>
+    </testcase>
+    <testcase name="VHDx_HotADD_Multi_Dynamic_SCSI" time="1.82">
+      <properties>
+        <property name="tc_covered" value="RHEL6-0000,RHEL-130218" />
+      </properties>
+    </testcase>
+    <testcase name="VHDx_HotRemove_Multi_Dynamic_SCSI" time="2.78">
+      <properties>
+        <property name="tc_covered" value="STOR-29,STOR-30" />
+      </properties>
+    </testcase>
+    <testcase name="VHDx_HotADD_Dynamic_SCSI_SMP" time="1.87">
+      <properties>
+        <property name="tc_covered" value="RHEL6-0000,RHEL-130216" />
+      </properties>
+    </testcase>
+    <testcase name="VHDx_HotRemove_Dynamic_SCSI_SMP" time="1.62">
+      <properties>
+        <property name="tc_covered" value="RHEL6-0000,RHEL-130217" />
+      </properties>
+    </testcase>
+    <testcase name="VHDx_DiskHotPlugUnplug" time="3.47">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34450,RHEL7-12176" />
+      </properties>
+    </testcase>
+    <testcase name="VHDx_DiskHotPlugUnplug_Multi_SCSI" time="9.86">
+      <properties>
+        <property name="tc_covered" value="STOR-44" />
+      </properties>
+    </testcase>
+    <testcase name="VHDx_4k_MultiDiskSCSI_Dynamic" time="1.72">
+      <properties>
+        <property name="tc_covered" value="RHEL6-0000,RHEL-130208" />
+      </properties>
+    </testcase>
+    <testcase name="VHDx_4k_MultiDiskSCSI_Fixed" time="2.82">
+      <properties>
+        <property name="tc_covered" value="RHEL6-0000,RHEL-130209" />
+      </properties>
+    </testcase>
+    <testcase name="VHDx_4k_HotADD_Multi_Dynamic_SCSI" time="2.30">
+      <properties>
+        <property name="tc_covered" value="RHEL6-0000,RHEL7-12176" />
+      </properties>
+    </testcase>
+    <testcase name="VHDx_4k_HotRemove_Multi_Dynamic_SCSI" time="2.13">
+      <properties>
+        <property name="tc_covered" value="RHEL6-0000,RHEL7-12178" />
+      </properties>
+    </testcase>
+    <testcase name="VHDx_SCSI_0_1_Dynamic_Large_3TB" time="2.43">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34469,RHEL7-12170" />
+      </properties>
+    </testcase>
+    <testcase name="VHDx_IDE_0_1_Dynamic_Large_3TB" time="1.49">
+      <skipped />
+      <properties>
+        <property name="tc_covered" value="RHEL6-0000,RHEL7-12185" />
+      </properties>
+    </testcase>
+    <testcase name="VHDx_SCSI_Dynamic_Local_Copy_File" time="2.58">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34470,RHEL7-12155" />
+      </properties>
+    </testcase>
+    <testcase name="VHDx_SCSI_Dynamic_NFS_File" time="4.96">
+      <properties>
+        <property name="tc_covered" value="RHEL6-0000,RHEL-130226" />
+      </properties>
+    </testcase>
+    <testcase name="VHDx_SCSI_Dynamic_Wget_File" time="2.68">
+      <properties>
+        <property name="tc_covered" value="RHEL6-0000,RHEL-130229" />
+      </properties>
+    </testcase>
+    <testcase name="VHDx_Mount_NFS" time="2.78">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34456,RHEL7-12183" />
+      </properties>
+    </testcase>
+    <testcase name="VHDx_Verify_SectorSize" time="3.15">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34443,RHEL7-18783" />
+      </properties>
+    </testcase>
+    <testcase name="NMI_Verify_Interrupt" time="5.06">
+      <properties>
+        <property name="tc_covered" value="RHEL6-0000,RHEL7-35676" />
+      </properties>
+    </testcase>
+    <testcase name="VHDxResizeToBigger4096" time="7.81">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34459,RHEL7-60231" />
+      </properties>
+    </testcase>
+    <testcase name="VHDxResizeToSmaller4096" time="3.52">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34460,RHEL7-60232" />
+      </properties>
+    </testcase>
+    <testcase name="VHDxResizeGrowShrink_SCSI" time="2.83">
+      <properties>
+        <property name="tc_covered" value="RHEL6-0000,RHEL-130245" />
+      </properties>
+    </testcase>
+    <testcase name="VHDxResizeGrowShrink_SCSI_Offline" time="4.37">
+      <properties>
+        <property name="tc_covered" value="RHEL6-0000,RHEL-130246" />
+      </properties>
+    </testcase>
+    <testcase name="VHDxResizeGrowFilesystem4096" time="6.86">
+      <properties>
+        <property name="tc_covered" value="RHEL6-0000,RHEL7-12188" />
+      </properties>
+    </testcase>
+    <testcase name="VHDxResizeOver2TB_SCSI" time="8.98">
+      <properties>
+        <property name="tc_covered" value="RHEL6-0000,RHEL-130249" />
+      </properties>
+    </testcase>
+    <testcase name="VHDxResizeGrowOver2TB_Shrink_SCSI_Online" time="8.32">
+      <properties>
+        <property name="tc_covered" value="RHEL6-0000,RHEL-130248" />
+      </properties>
+    </testcase>
+    <testcase name="VHDxResizeToBigger512_Dynamic_IDE" time="0.83">
+      <skipped />
+      <properties>
+        <property name="tc_covered" value="RHEL6-34461,RHEL7-12207" />
+      </properties>
+    </testcase>
+    <testcase name="VHDxResizeToBigger512_Fixed_IDE" time="0.86">
+      <skipped />
+      <properties>
+        <property name="tc_covered" value="RHEL6-0000,RHEL-130239" />
+      </properties>
+    </testcase>
+    <testcase name="VHDxResizeGrowShrink_IDE" time="0.81">
+      <skipped />
+      <properties>
+        <property name="tc_covered" value="RHEL6-34462,RHEL7-12210" />
+      </properties>
+    </testcase>
+    <testcase name="VHDxResizeOver2TB_IDE" time="0.92">
+      <skipped />
+      <properties>
+        <property name="tc_covered" value="RHEL6-0000,RHEL-130250" />
+      </properties>
+    </testcase>
+    <testcase name="Crash_single_core" time="5.35">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34567,RHEL7-12235" />
+      </properties>
+    </testcase>
+    <testcase name="Crash_SMP" time="4.19">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34572,RHEL7-12115" />
+      </properties>
+    </testcase>
+    <testcase name="Crash_NMI" time="5.79">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34562,RHEL7-35679" />
+      </properties>
+    </testcase>
+    <testcase name="Crash_differentVCPU" time="4.03">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34561,RHEL7-47072" />
+      </properties>
+    </testcase>
+    <testcase name="OperState" time="1.98">
+      <properties>
+        <property name="tc_covered" value="RHEL6-0000,RHEL7-12117" />
+      </properties>
+    </testcase>
+    <testcase name="CheckKeywithEthtool" time="1.71">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34399,RHEL7-12095" />
+      </properties>
+    </testcase>
+    <testcase name="CopyFileScp" time="12.22">
+      <properties>
+        <property name="tc_covered" value="NET-19" />
+      </properties>
+    </testcase>
+    <testcase name="IPInjection" time="1.73">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34504,RHEL7-12105" />
+      </properties>
+    </testcase>
+    <testcase name="MaxSyntheticNIC" time="4.27">
+      <properties>
+        <property name="tc_covered" value="RHEL6-0000,RHEL-130241" />
+      </properties>
+    </testcase>
+    <testcase name="External" time="2.89">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34401,RHEL7-12218" />
+      </properties>
+    </testcase>
+    <testcase name="InternalNetwork" time="2.74">
+      <properties>
+        <property name="tc_covered" value="RHEL6-0000,RHEL-130258" />
+      </properties>
+    </testcase>
+    <testcase name="GuestOnlyNetwork" time="0.38">
+      <failure type="Aborted">Test GuestOnlyNetwork Aborted.</failure>
+      <properties>
+        <property name="tc_covered" value="RHEL6-0000,RHEL-130252" />
+      </properties>
+    </testcase>
+    <testcase name="MultipleNIC" time="4.15">
+      <properties>
+        <property name="tc_covered" value="RHEL6-0000,RHEL-130247" />
+      </properties>
+    </testcase>
+    <testcase name="NetworkMode" time="2.02">
+      <properties>
+        <property name="tc_covered" value="RHEL6-0000,RHEL-130310" />
+      </properties>
+    </testcase>
+    <testcase name="ChangeNetTypeInternal" time="2.54">
+      <properties>
+        <property name="tc_covered" value="RHEL6-0000,RHEL-130253" />
+      </properties>
+    </testcase>
+    <testcase name="ChangeNetTypeGuest" time="0.39">
+      <failure type="Aborted">Test ChangeNetTypeGuest Aborted.</failure>
+      <properties>
+        <property name="tc_covered" value="RHEL6-0000,RHEL-130255" />
+      </properties>
+    </testcase>
+    <testcase name="CopyLargeFile" time="0.40">
+      <failure type="Aborted">Test CopyLargeFile Aborted.</failure>
+      <properties>
+        <property name="tc_covered" value="RHEL6-34415,RHEL7-12198" />
+      </properties>
+    </testcase>
+    <testcase name="VlanTagging" time="1.21">
+      <failure type="Failed">Test VlanTagging Failed.</failure>
+      <properties>
+        <property name="tc_covered" value="RHEL6-34414,RHEL7-12190" />
+      </properties>
+    </testcase>
+    <testcase name="VlanTrunking" time="1.29">
+      <failure type="Failed">Test VlanTrunking Failed.</failure>
+      <properties>
+        <property name="tc_covered" value="RHEL6-34413,RHEL7-12201" />
+      </properties>
+    </testcase>
+    <testcase name="HotAddMultiNIC" time="1.47">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34420,RHEL7-12126" />
+      </properties>
+    </testcase>
+    <testcase name="HotAddRemoveNic" time="1.68">
+      <properties>
+        <property name="tc_covered" value="RHEL6-34419,RHEL7-12125" />
+      </properties>
+    </testcase>
+    <testcase name="HotAddRemoveMaxNIC" time="4.62">
+      <properties>
+        <property name="tc_covered" value="RHEL6-0000,RHEL-130227" />
+      </properties>
+    </testcase>
+    <testcase name="VlanTrunking_ipv6" time="1.52">
+      <failure type="Failed">Test VlanTrunking_ipv6 Failed.</failure>
+      <properties>
+        <property name="tc_covered" value="RHEL6-0000,RHEL-130254" />
+      </properties>
+    </testcase>
+    <testcase name="DM_loaded" time="1.30">
+      <properties>
+        <property name="tc_covered" value="RHEL6-0000,RHEL7-12158" />
+      </properties>
+    </testcase>
+    <testcase name="hvsock_host_as_server" time="1.26">
+      <failure type="Failed">Test hvsock_host_as_server Failed.</failure>
+      <properties>
+        <property name="tc_covered" value="HV-Sock-01" />
+      </properties>
+    </testcase>
+    <testcase name="hvsock_vm_as_server" time="7.58">
+      <failure type="Aborted">Test hvsock_vm_as_server Aborted.</failure>
+      <properties>
+        <property name="tc_covered" value="HV-Sock-02" />
+      </properties>
+    </testcase>
+    <testcase name="ProductionCheckpoint" time="1.61">
+      <properties>
+        <property name="tc_covered" value="RHEL6-0000,RHEL7-37144" />
+      </properties>
+    </testcase>
+    <testcase name="VHD_AddPassThrough_MultiDisk_SCSI" time="1.83">
+      <properties>
+        <property name="tc_covered" value="RHEL6-00000,RHEL7-12184" />
+      </properties>
+    </testcase>
+  </testsuite>
+</testsuites>
