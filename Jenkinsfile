@@ -32,6 +32,9 @@ pipeline {
                 NFS_PATH = credentials('nfs-path')
             }
             steps {
+                script {
+                    currentBuild.displayName = "${env.owner}-${env.version}-${env.release}-${env.id}"
+                }
                 echo 'Running Omni Container...'
                 sh """
                     sudo docker network inspect jenkins >/dev/null 2>&1 || sudo docker network create jenkins
@@ -76,9 +79,9 @@ pipeline {
             }
             parallel {
                 stage('Smoking Test - Hyper-V 2016 Gen1') {
-                    // options {
-                    //     timeout(time: 2, unit: 'HOURS')
-                    // }
+                    options {
+                        timeout(time: 2, unit: 'HOURS')
+                    }
                     environment {
                         HOST_ID = '2016-AUTO'
                         IMAGE = "image-2016-${RHEL_VER}.vhdx"
@@ -118,9 +121,9 @@ pipeline {
                     }
                 }
                 stage('Smoking Test - Hyper-V 2012R2 Gen2') {
-                    // options {
-                    //     timeout(time: 2, unit: 'HOURS')
-                    // }
+                    options {
+                        timeout(time: 2, unit: 'HOURS')
+                    }
                     environment {
                         HOST_ID = '2012R2-AUTO'
                         IMAGE = "image-2012r2-${RHEL_VER}.vhdx"
@@ -159,9 +162,9 @@ pipeline {
                     }
                 }
                 stage('Smoking Test - Hyper-V 2012 Gen1') {
-                    // options {
-                    //     timeout(time: 2, unit: 'HOURS')
-                    // }
+                    options {
+                        timeout(time: 2, unit: 'HOURS')
+                    }
                     environment {
                         HOST_ID = '2012-72-132'
                         IMAGE = "image-2012-${RHEL_VER}.vhdx"
@@ -200,9 +203,9 @@ pipeline {
                     }
                 }
                 stage('Functional Test - Hyper-V 2016 Gen2') {
-                    // options {
-                    //     timeout(time: 6, unit: 'HOURS')
-                    // }
+                    options {
+                        timeout(time: 6, unit: 'HOURS')
+                    }
                     environment {
                         HOST_ID = '2016-AUTO'
                         IMAGE = "image-2016-${RHEL_VER}.vhdx"
@@ -242,9 +245,9 @@ pipeline {
                     }
                 }
                 stage('Functional Test - Hyper-V 2012R2 Gen1') {
-                    // options {
-                    //     timeout(time: 6, unit: 'HOURS')
-                    // }
+                    options {
+                        timeout(time: 6, unit: 'HOURS')
+                    }
                     environment {
                         HOST_ID = '2012R2-AUTO'
                         IMAGE = "image-2012r2-${RHEL_VER}.vhdx"
@@ -283,9 +286,9 @@ pipeline {
                     }
                 }
                 stage('Functional Test - Hyper-V 2012 Gen1') {
-                    // options {
-                    //     timeout(time: 6, unit: 'HOURS')
-                    // }
+                    options {
+                        timeout(time: 6, unit: 'HOURS')
+                    }
                     environment {
                         HOST_ID = '2012-72-132'
                         IMAGE = "image-2012-${RHEL_VER}.vhdx"
