@@ -71,7 +71,7 @@ pipeline {
                 cleanWs()
             }
         }
-        stage('Hypervisor Test Matrix') {
+        stage('Smoking Test') {
             environment {
                 DOMAIN = credentials('hyperv-domain-login')
                 OMNI_IP = credentials('omni-server-ip')
@@ -202,6 +202,79 @@ pipeline {
                         }
                     }
                 }
+                // stage('ESXi 6.7 EFI') {
+                //     agent {
+                //         node {
+                //             label '3rd-CIVAN'
+                //             customWorkspace "workspace/pipeline-6.7-efi-${env.BUILD_ID}"
+                //         }
+                //     }
+                //     when {
+                //         expression { HV == '2' || HV == '3'}
+                //     }
+                //     steps {
+                //         echo 'EFI VM Provision on ESXi 6.7'
+                //         echo 'Test Running'
+                //         cleanWs()
+                //     }
+                // }
+                // stage('ESXi 6.5 BIOS') {
+                //     agent {
+                //         node {
+                //             label '3rd-CIVAN'
+                //             customWorkspace "workspace/pipeline-6.5-bios-${env.BUILD_ID}"
+                //         }
+                //     }
+                //     when {
+                //         expression { HV == '2' || HV == '3'}
+                //     }
+                //     steps {
+                //         echo 'BIOS VM Provision on ESXi 6.5'
+                //         echo 'Test Running'
+                //         cleanWs()
+                //     }
+                // }
+                // stage('ESXi 6.0 EFI') {
+                //     agent {
+                //         node {
+                //             label '3rd-CIVAN'
+                //             customWorkspace "workspace/pipeline-6.0-efi-${env.BUILD_ID}"
+                //         }
+                //     }
+                //     when {
+                //         expression { HV == '2' || HV == '3'}
+                //     }
+                //     steps {
+                //         echo 'EFI VM Provision on ESXi 6.0'
+                //         echo 'Test Running'
+                //         cleanWs()
+                //     }
+                // }
+                // stage('ESXi 5.5 BIOS') {
+                //     agent {
+                //         node {
+                //             label '3rd-CIVAN'
+                //             customWorkspace "workspace/pipeline-5.5-bios-${env.BUILD_ID}"
+                //         }
+                //     }
+                //     when {
+                //         expression { HV == '2' || HV == '3'}
+                //     }
+                //     steps {
+                //         echo 'BIOS VM Provision on ESXi 5.5'
+                //         echo 'Test Running'
+                //         cleanWs()
+                //     }
+                // }
+            }
+        }
+        stage('Functional Test') {
+            environment {
+                DOMAIN = credentials('hyperv-domain-login')
+                OMNI_IP = credentials('omni-server-ip')
+                OMNI_USER = credentials('omni-scp-username')
+            }
+            parallel {
                 stage('Functional Test - Hyper-V 2016 Gen2') {
                     options {
                         timeout(time: 6, unit: 'HOURS')
@@ -326,70 +399,70 @@ pipeline {
                         }
                     }
                 }
-                stage('ESXi 6.7 EFI') {
-                    agent {
-                        node {
-                            label '3rd-CIVAN'
-                            customWorkspace "workspace/pipeline-6.7-efi-${env.BUILD_ID}"
-                        }
-                    }
-                    when {
-                        expression { HV == '2' || HV == '3'}
-                    }
-                    steps {
-                        echo 'EFI VM Provision on ESXi 6.7'
-                        echo 'Test Running'
-                        cleanWs()
-                    }
-                }
-                stage('ESXi 6.5 BIOS') {
-                    agent {
-                        node {
-                            label '3rd-CIVAN'
-                            customWorkspace "workspace/pipeline-6.5-bios-${env.BUILD_ID}"
-                        }
-                    }
-                    when {
-                        expression { HV == '2' || HV == '3'}
-                    }
-                    steps {
-                        echo 'BIOS VM Provision on ESXi 6.5'
-                        echo 'Test Running'
-                        cleanWs()
-                    }
-                }
-                stage('ESXi 6.0 EFI') {
-                    agent {
-                        node {
-                            label '3rd-CIVAN'
-                            customWorkspace "workspace/pipeline-6.0-efi-${env.BUILD_ID}"
-                        }
-                    }
-                    when {
-                        expression { HV == '2' || HV == '3'}
-                    }
-                    steps {
-                        echo 'EFI VM Provision on ESXi 6.0'
-                        echo 'Test Running'
-                        cleanWs()
-                    }
-                }
-                stage('ESXi 5.5 BIOS') {
-                    agent {
-                        node {
-                            label '3rd-CIVAN'
-                            customWorkspace "workspace/pipeline-5.5-bios-${env.BUILD_ID}"
-                        }
-                    }
-                    when {
-                        expression { HV == '2' || HV == '3'}
-                    }
-                    steps {
-                        echo 'BIOS VM Provision on ESXi 5.5'
-                        echo 'Test Running'
-                        cleanWs()
-                    }
-                }
+                // stage('ESXi 6.7 EFI') {
+                //     agent {
+                //         node {
+                //             label '3rd-CIVAN'
+                //             customWorkspace "workspace/pipeline-6.7-efi-${env.BUILD_ID}"
+                //         }
+                //     }
+                //     when {
+                //         expression { HV == '2' || HV == '3'}
+                //     }
+                //     steps {
+                //         echo 'EFI VM Provision on ESXi 6.7'
+                //         echo 'Test Running'
+                //         cleanWs()
+                //     }
+                // }
+                // stage('ESXi 6.5 BIOS') {
+                //     agent {
+                //         node {
+                //             label '3rd-CIVAN'
+                //             customWorkspace "workspace/pipeline-6.5-bios-${env.BUILD_ID}"
+                //         }
+                //     }
+                //     when {
+                //         expression { HV == '2' || HV == '3'}
+                //     }
+                //     steps {
+                //         echo 'BIOS VM Provision on ESXi 6.5'
+                //         echo 'Test Running'
+                //         cleanWs()
+                //     }
+                // }
+                // stage('ESXi 6.0 EFI') {
+                //     agent {
+                //         node {
+                //             label '3rd-CIVAN'
+                //             customWorkspace "workspace/pipeline-6.0-efi-${env.BUILD_ID}"
+                //         }
+                //     }
+                //     when {
+                //         expression { HV == '2' || HV == '3'}
+                //     }
+                //     steps {
+                //         echo 'EFI VM Provision on ESXi 6.0'
+                //         echo 'Test Running'
+                //         cleanWs()
+                //     }
+                // }
+                // stage('ESXi 5.5 BIOS') {
+                //     agent {
+                //         node {
+                //             label '3rd-CIVAN'
+                //             customWorkspace "workspace/pipeline-5.5-bios-${env.BUILD_ID}"
+                //         }
+                //     }
+                //     when {
+                //         expression { HV == '2' || HV == '3'}
+                //     }
+                //     steps {
+                //         echo 'BIOS VM Provision on ESXi 5.5'
+                //         echo 'Test Running'
+                //         cleanWs()
+                //     }
+                // }
             }
         }
     }
