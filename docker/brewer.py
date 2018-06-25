@@ -15,7 +15,7 @@ class Brewer():
 
     Parameters of this class:
         name: A string representing the build's name ("kernel-3.10.0-825.el7").
-        api: Brew API URL ("http://api.brew.com/brewhub").
+        api: Brew API URL.
     """
 
     def __init__(self, name, api):
@@ -32,29 +32,29 @@ class Brewer():
         """Return a dict of build info.
 
         {'package_name': 'kernel',
-         'extra': None,
-         'creation_time': '2017-12-13 10:21:22.163979',
-         'completion_time': '2017-12-13 11:53:55.824766',
-         'package_id': 1231,
-         'id': 632394,
-         'build_id': 632394,
-         'epoch': None,
-         'source': None,
-         'state': 1,
-         'version': '3.10.0',
-         'completion_ts': 1513166035.82477,
-         'owner_id': 1474,
-         'owner_name': 'raquini',
-         'nvr': 'kernel-3.10.0-821.el7',
-         'start_time': '2017-12-13 10:21:22.163979',
-         'creation_event_id': 17427237,
-         'start_ts': 1513160482.16398,
-         'volume_id': 0,
-         'creation_ts': 1513160482.16398,
-         'name': 'kernel',
-         'task_id': 14744635,
-         'volume_name': 'DEFAULT',
-         'release': '821.el7'}.
+         'extra': xxx,
+         'creation_time': 'xxx',
+         'completion_time': 'xxx',
+         'package_id': xxx,
+         'id': xxx,
+         'build_id': xxx,
+         'epoch': xxx,
+         'source': xxx,
+         'state': xxx,
+         'version': 'xxx',
+         'completion_ts': xxx,
+         'owner_id': xxx,
+         'owner_name': 'xxx',
+         'nvr': 'xxx',
+         'start_time': 'xxx',
+         'creation_event_id': xxx,
+         'start_ts': xxx,
+         'volume_id': xxx,
+         'creation_ts': xxx,
+         'name': 'xxx',
+         'task_id': xxx,
+         'volume_name': 'xxx',
+         'release': 'xxx'}.
         """
         return self._get_proxy().getBuild(self.name)
 
@@ -71,13 +71,7 @@ class Brewer():
 
     @property
     def changelog(self):
-        r"""Return a raw changelog dict.
-
-        {'date': '2017-12-26 12:00:00', 'text': "- [scsi] lpfc: Fix crash
-        after bad bar setup on driver attachment (Dick Kennedy) [1441965]\n",
-        'date_ts': 1514289600, 'author': 'Rafael Aquini <aquini@redhat.com>
-        [3.10.0-825.el7]'}
-        """
+        r"""Return a raw changelog dict."""
         # Work around log time is not at the same day as build "start_time"
         # Like kernel-3.10.0-512.el7, its log time is 2016-09-30 12:00:00
         # but its build start time is 2016-10-01 03:27:46.300467
@@ -122,6 +116,8 @@ class Brewer():
         """
         URL_prefix = "http://download.eng.bos.redhat.com/brewroot/work/"
 
+        download_urls = []
+
         sub_tasks = self._get_proxy().getTaskChildren(task_id)
         self._logger.debug("Sub tasks {0}".format(sub_tasks))
 
@@ -131,11 +127,14 @@ class Brewer():
         self._logger.info("Found task ID {0}".format(sub_task_id))
 
         rpms = self._get_proxy().getTaskResult(sub_task_id)["rpms"]
-        self._logger.debug("All build RPMS {0}".format(sub_tasks))
+        self._logger.debug("All build RPMS {0}".format(rpms))
 
         for rpm in rpms:
-            if self.name in rpm:
-                URL_suffix = rpm
-        self._logger.info("Found RPM {0}".format(URL_suffix))
+            if self.name in rpm or \
+               self.name.replace("kernel", "kernel-core") in rpm or \
+               self.name.replace("kernel", "kernel-modules") in rpm:
+                download_urls.append(URL_prefix + rpm)
 
-        return URL_prefix + URL_suffix
+        self._logger.info("Found RPM {0}".format(download_urls))
+
+        return download_urls

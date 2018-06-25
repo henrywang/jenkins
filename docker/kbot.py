@@ -67,9 +67,10 @@ def main(args):
     logger.info("Download path: {0}.".format(args.path))
 
     brew = brewer.Brewer(args.kernel_name, args.brew_api)
-    url = brew.download_url(args.id)
+    urls = brew.download_url(args.id)
 
-    args.download(logger, url, args.path)
+    for url in urls:
+        args.download(logger, url, args.path)
 
 
 if __name__ == '__main__':
