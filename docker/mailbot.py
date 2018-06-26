@@ -102,9 +102,9 @@ def sender(metadata, logger, mail, smtp, task, hv):
         'If you need more help, feel free to contact us by sending email to '
         '3rd-qe-list@redhat.com. Thanks for using 3rd QE downstream '
         'kernel CI.\n\n'
-        '[1] Some of the failed cases might not be caused by your '
-        'code change.\n'
-        '[2] {task}{id}\n\n\n'
+        '[1] {task}{id}\n'
+        '[2] Some of the failed cases might not be caused by your '
+        'code change.\n\n\n'
         'Regards,\n'
         '3rd QE Team'
         ).format(
@@ -146,8 +146,13 @@ def main(args):
     logger = hwlogging.Logger("mailbot.log", "./").logger
     logger.info("JUnit XML file path: {0}.".format(args.path))
 
-    metadata = parse_xml(args.path, logger)
-    sender(metadata, logger, args.mail, args.smtp, args.task, args.hv)
+    try:
+        metadata = parse_xml(args.path, logger)
+        sender(metadata, logger, args.mail, args.smtp, args.task, args.hv)
+    # If bad things happened and no result xml file, it will not impact
+    # docker container and volume clean task
+    except IndexError:
+        logger.info("Sending email fail.")
 
 
 if __name__ == '__main__':
