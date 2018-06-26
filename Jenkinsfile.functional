@@ -1,0 +1,335 @@
+def RunPowershellCommand(psCmd) {
+    bat "powershell.exe -NonInteractive -ExecutionPolicy Bypass -Command \"[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;$psCmd;EXIT \$global:LastExitCode\""
+}
+pipeline {
+    agent {
+        node {
+            label '3rd-CIBUS'
+            customWorkspace "workspace/pipeline-func-${env.BUILD_ID}"
+        }
+    }
+    environment {
+        RHEL_VER = sh(returnStdout: true, script: "[[ $version = 4.* ]] && echo '8' || echo '7'").trim()
+        API_PORT = sh(returnStdout: true, script: 'awk -v min=1025 -v max=9999 \'BEGIN{srand(); print int(min+rand()*(max-min+1))}\'').trim()
+        HV = sh(returnStdout: true, script: """
+                if [[ $release = *"hyperv"* ]] || [[ $release = *"hyper-v"* ]] || [[ $release = *"hyper"* ]]; then 
+                    echo "1"
+                elif [[ $release = *"esxi"* ]] || [[ $release = *"esx"* ]]; then
+                    echo "2"
+                else
+                    echo "3"
+                fi
+                """).trim()
+        FROM = credentials('email-3rd-qe-list')
+        SMTP = credentials('smtp-server-address')
+        TASK_URL_PREFIX = credentials('task-url-prefix')
+    }
+    stages {
+        stage('Omni Server Provision') {
+            environment {
+                PUBLIC_KEY = credentials('3rd_id_rsa_pub')
+                NFS_IP = credentials('nfs-ip')
+                NFS_PATH = credentials('nfs-path')
+            }
+            steps {
+                script {
+                    currentBuild.displayName = "${env.owner}-${env.version}-${env.release}-${env.id}"
+                }
+                echo 'Running Omni Container...'
+                sh """
+                    sudo docker network inspect jenkins >/dev/null 2>&1 || sudo docker network create jenkins
+                    sudo docker pull henrywangxf/jenkins:latest
+                    sudo docker ps --quiet --all --filter 'name=omni-${API_PORT}' | sudo xargs --no-run-if-empty docker rm -f
+                    sudo docker volume ls --quiet --filter 'name=kernels-volume-${API_PORT}' | sudo xargs --no-run-if-empty docker volume rm
+                    sudo docker volume inspect nfs-${API_PORT} > /dev/null 2>&1 || \
+                        sudo docker volume create --driver local \
+                        --opt type=nfs --opt o=addr=${NFS_IP} --opt device=:${NFS_PATH} nfs-${API_PORT}
+	                sudo docker run -d --name omni-${API_PORT} --restart=always \
+                        -p ${API_PORT}:22 -v kernels-volume-${API_PORT}:/kernels -v nfs-${API_PORT}:/kernels/nfs \
+                        --network jenkins --security-opt label=disable \
+                        -e AUTHORIZED_KEYS=\"${PUBLIC_KEY}\" \
+                        henrywangxf/jenkins:latest
+                """
+                sh 'printenv'
+                cleanWs()
+            }
+        }
+        stage('Kernel Download') {
+            environment {
+                BREW_API = credentials('3rd-brew-api-address')
+            }
+            steps {
+                echo 'Downloading kernel rpm...'
+                sh """
+                    sudo docker ps --quiet --all --filter 'name=download-${API_PORT}' | sudo xargs --no-run-if-empty docker rm -f
+	                sudo docker run --rm --name download-${API_PORT} \
+                        -v kernels-volume-${API_PORT}:/kernels --network jenkins \
+                        henrywangxf/jenkins:latest \
+                        python3 kbot.py ${name}-${version}-${release} ${BREW_API} --download --id ${id} --path /kernels
+                """
+                echo "API_PORT: ${API_PORT}"
+                cleanWs()
+            }
+        }
+        stage('Functional Test') {
+            environment {
+                DOMAIN = credentials('hyperv-domain-login')
+                VSPHERE = credentials('fd83fe98-2754-4985-9276-12fbbf73d3bf')
+                OMNI_IP = credentials('omni-server-ip')
+                OMNI_USER = credentials('omni-scp-username')
+                ENVVISIPADDR = credentials('vsphere-ip')
+                ENVVISPROTOCOL = 'HTTPS'
+            }
+            parallel {
+                stage('Hyper-V 2016 Gen2') {
+                    options {
+                        timeout(time: 6, unit: 'HOURS')
+                    }
+                    environment {
+                        HOST_ID = '2016-AUTO'
+                        IMAGE = "image-2016-${RHEL_VER}.vhdx"
+                    }
+                    agent {
+                        node {
+                            label '3rd-CIVAN'
+                            customWorkspace "workspace/pipeline-2016-g2-${env.BUILD_ID}"
+                        }
+                    }
+                    when {
+                        expression { HV == '1' || HV == '3'}
+                    }
+                    steps {
+                        echo 'Checkout VM Provision Code'
+                        checkout scm
+                        echo 'Gen2 VM Provision on 2016'
+                        powershell 'Get-ChildItem Env:'
+                        RunPowershellCommand(".\\runner.ps1 -action add -dual -gen2")
+                        echo 'Checkout LISA Code'
+                        checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'lis']], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/LIS/lis-test.git']]]
+                        RunPowershellCommand(".\\runner.ps1 -action run -dual -gen2")
+                    }
+                    post {
+                        always {
+                            // Delete VM(s)
+                            RunPowershellCommand(".\\runner.ps1 -action del -dual -gen2")
+                            // Upload result to omni server
+                            RunPowershellCommand(".\\runner.ps1 -action put -dual -gen2")
+                            // Clear workspace
+                            cleanWs()
+                        }
+                    }
+                }
+                stage('Hyper-V 2012R2 Gen1') {
+                    options {
+                        timeout(time: 6, unit: 'HOURS')
+                    }
+                    environment {
+                        HOST_ID = '2012R2-AUTO'
+                        IMAGE = "image-2012r2-${RHEL_VER}.vhdx"
+                    }
+                    agent {
+                        node {
+                            label '3rd-CIVAN'
+                            customWorkspace "workspace/pipeline-2012r2-g1-${env.BUILD_ID}"
+                        }
+                    }
+                    when {
+                        expression { HV == '1' || HV == '3'}
+                    }
+                    steps {
+                        echo 'Checkout VM Provision Code'
+                        checkout scm
+                        echo 'Gen1 VM Provision on 2012R2'
+                        RunPowershellCommand(".\\runner.ps1 -action add -dual")
+                        echo 'Checkout LISA Code'
+                        checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'lis']], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/LIS/lis-test.git']]]
+                        RunPowershellCommand(".\\runner.ps1 -action run -dual")
+                    }
+                    post {
+                        always {
+                            // Delete VM(s)
+                            RunPowershellCommand(".\\runner.ps1 -action del -dual")
+                            // Upload result to omni server
+                            RunPowershellCommand(".\\runner.ps1 -action put -dual")
+                            // Clear workspace
+                            cleanWs()
+                        }
+                    }
+                }
+                stage('Hyper-V 2012 Gen1') {
+                    options {
+                        timeout(time: 6, unit: 'HOURS')
+                    }
+                    environment {
+                        HOST_ID = '2012-72-132'
+                        IMAGE = "image-2012-${RHEL_VER}.vhdx"
+                    }
+                    agent {
+                        node {
+                            label '3rd-CIVAN'
+                            customWorkspace "workspace/pipeline-2012-g1-${env.BUILD_ID}"
+                        }
+                    }
+                    when {
+                        expression { HV == '1' || HV == '3'}
+                    }
+                    steps {
+                        echo 'Checkout VM Provision Code'
+                        checkout scm
+                        echo 'Gen1 VM Provision on 2012'
+                        RunPowershellCommand(".\\runner.ps1 -action add -dual")
+                        echo 'Checkout LISA Code'
+                        checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'lis']], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/LIS/lis-test.git']]]
+                        RunPowershellCommand(".\\runner.ps1 -action run -dual")
+                    }
+                    post {
+                        always {
+                            // Delete VM(s)
+                            RunPowershellCommand(".\\runner.ps1 -action del -dual")
+                            // Upload result to omni server
+                            RunPowershellCommand(".\\runner.ps1 -action put -dual")
+                            // Clear workspace
+                            cleanWs()
+                        }
+                    }
+                }
+                stage('ESXi 6.7 BIOS') {
+                    options {
+                        timeout(time: 2, unit: 'HOURS')
+                    }
+                    environment {
+                        HOST_ID = '10.73.196.97'
+                        IMAGE = "image-67-${RHEL_VER}.ova"
+                    }
+                    agent {
+                        node {
+                            label '3rd-CIVAN'
+                            customWorkspace "workspace/pipeline-6.7-bios-${env.BUILD_ID}"
+                        }
+                    }
+                    when {
+                        expression { HV == '2' || HV == '3'}
+                    }
+                    steps {
+                        echo 'Checkout VM Provision Code'
+                        checkout scm
+                        echo 'EFI VM Provision on ESXi 6.7'
+                        RunPowershellCommand(".\\runner.ps1 -action add -dual -esxi")
+                        echo 'Checkout LISA Code'
+                        checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'lis']], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/VirtQE-S1/ESX-LISA.git']]]
+                        RunPowershellCommand(".\\runner.ps1 -action run -dual -esxi")
+                    }
+                    post {
+                        always {
+                            // Delete VM(s)
+                            RunPowershellCommand(".\\runner.ps1 -action del -dual -esxi")
+                            // Upload result to omni server
+                            RunPowershellCommand(".\\runner.ps1 -action put")
+                            // Clear workspace
+                            cleanWs()
+                        }
+                    }
+                }
+                stage('ESXi 6.5 EFI') {
+                    options {
+                        timeout(time: 2, unit: 'HOURS')
+                    }
+                    environment {
+                        HOST_ID = '10.73.72.129'
+                        IMAGE = "image-65-${RHEL_VER}.ova"
+                    }
+                    agent {
+                        node {
+                            label '3rd-CIVAN'
+                            customWorkspace "workspace/pipeline-6.5-efi-${env.BUILD_ID}"
+                        }
+                    }
+                    when {
+                        expression { HV == '2' || HV == '3'}
+                    }
+                    steps {
+                        echo 'Checkout VM Provision Code'
+                        checkout scm
+                        echo 'EFI VM Provision on ESXi 6.5'
+                        RunPowershellCommand(".\\runner.ps1 -action add -dual -gen2 -esxi")
+                        echo 'Checkout LISA Code'
+                        checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'lis']], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/VirtQE-S1/ESX-LISA.git']]]
+                        RunPowershellCommand(".\\runner.ps1 -action run -dual -gen2 -esxi")
+                    }
+                    post {
+                        always {
+                            // Delete VM(s)
+                            RunPowershellCommand(".\\runner.ps1 -action del -dual -gen2 -esxi")
+                            // Upload result to omni server
+                            RunPowershellCommand(".\\runner.ps1 -action put")
+                            // Clear workspace
+                            cleanWs()
+                        }
+                    }
+                }
+                stage('ESXi 6.0 BIOS') {
+                    options {
+                        timeout(time: 2, unit: 'HOURS')
+                    }
+                    environment {
+                        HOST_ID = '10.73.196.236'
+                        IMAGE = "image-60-${RHEL_VER}.ova"
+                    }
+                    agent {
+                        node {
+                            label '3rd-CIVAN'
+                            customWorkspace "workspace/pipeline-6.0-bios-${env.BUILD_ID}"
+                        }
+                    }
+                    when {
+                        expression { HV == '2' || HV == '3'}
+                    }
+                    steps {
+                        echo 'Checkout VM Provision Code'
+                        checkout scm
+                        echo 'EFI VM Provision on ESXi 6.0'
+                        RunPowershellCommand(".\\runner.ps1 -action add -dual -esxi")
+                        echo 'Checkout LISA Code'
+                        checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'lis']], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/VirtQE-S1/ESX-LISA.git']]]
+                        RunPowershellCommand(".\\runner.ps1 -action run -dual -esxi")
+                    }
+                    post {
+                        always {
+                            // Delete VM(s)
+                            RunPowershellCommand(".\\runner.ps1 -action del -dual -esxi")
+                            // Upload result to omni server
+                            RunPowershellCommand(".\\runner.ps1 -action put")
+                            // Clear workspace
+                            cleanWs()
+                        }
+                    }
+                }
+            }
+        }
+    }
+    post {
+        always {
+            echo 'Stop and remove omni container'
+            echo 'Start result analyzer and email sender container'
+            echo 'Remove volume'
+            sh """
+                sudo docker ps --quiet --all --filter 'name=omni-${API_PORT}' | sudo xargs --no-run-if-empty docker rm -f
+                sudo docker run --rm --name mailbot-${API_PORT} \
+                        -v kernels-volume-${API_PORT}:/kernels --network jenkins \
+                        henrywangxf/jenkins:latest \
+                        python3 ./mailbot.py --path /kernels --mail ${FROM} --task ${TASK_URL_PREFIX} --smtp ${SMTP} --hv ${HV}
+                sudo docker volume ls --quiet --filter 'name=kernels-volume-${API_PORT}' | sudo xargs --no-run-if-empty docker volume rm
+                sudo docker volume ls --quiet --filter 'name=nfs-${API_PORT}' | sudo xargs --no-run-if-empty docker volume rm
+                sudo docker rmi -f henrywangxf/jenkins:latest
+            """
+            // sudo docker volume ls --quiet --filter 'name=kernels-volume-${API_PORT}' | sudo xargs --no-run-if-empty docker volume rm
+            cleanWs()
+        }
+    }
+    options {
+        skipDefaultCheckout()
+        timestamps()
+        buildDiscarder(logRotator(numToKeepStr:'10'))
+        timeout(time: 6, unit: 'HOURS')
+    }
+}

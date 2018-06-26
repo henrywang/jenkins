@@ -5,7 +5,7 @@ pipeline {
     agent {
         node {
             label '3rd-CIBUS'
-            customWorkspace "workspace/pipeline-${env.BUILD_ID}"
+            customWorkspace "workspace/pipeline-smoke-${env.BUILD_ID}"
         }
     }
     environment {
@@ -41,11 +41,11 @@ pipeline {
                     sudo docker pull henrywangxf/jenkins:latest
                     sudo docker ps --quiet --all --filter 'name=omni-${API_PORT}' | sudo xargs --no-run-if-empty docker rm -f
                     sudo docker volume ls --quiet --filter 'name=kernels-volume-${API_PORT}' | sudo xargs --no-run-if-empty docker volume rm
-                    sudo docker volume inspect nfs > /dev/null 2>&1 || \
+                    sudo docker volume inspect nfs-${API_PORT} > /dev/null 2>&1 || \
                         sudo docker volume create --driver local \
-                        --opt type=nfs --opt o=addr=${NFS_IP} --opt device=:${NFS_PATH} nfs
+                        --opt type=nfs --opt o=addr=${NFS_IP} --opt device=:${NFS_PATH} nfs-${API_PORT}
 	                sudo docker run -d --name omni-${API_PORT} --restart=always \
-                        -p ${API_PORT}:22 -v kernels-volume-${API_PORT}:/kernels -v nfs:/kernels/nfs \
+                        -p ${API_PORT}:22 -v kernels-volume-${API_PORT}:/kernels -v nfs-${API_PORT}:/kernels/nfs \
                         --network jenkins --security-opt label=disable \
                         -e AUTHORIZED_KEYS=\"${PUBLIC_KEY}\" \
                         henrywangxf/jenkins:latest
@@ -74,11 +74,14 @@ pipeline {
         stage('Smoking Test') {
             environment {
                 DOMAIN = credentials('hyperv-domain-login')
+                VSPHERE = credentials('fd83fe98-2754-4985-9276-12fbbf73d3bf')
                 OMNI_IP = credentials('omni-server-ip')
                 OMNI_USER = credentials('omni-scp-username')
+                ENVVISIPADDR = credentials('vsphere-ip')
+                ENVVISPROTOCOL = 'HTTPS'
             }
             parallel {
-                stage('Smoking Test - Hyper-V 2016 Gen1') {
+                stage('Hyper-V 2016 Gen1') {
                     options {
                         timeout(time: 2, unit: 'HOURS')
                     }
@@ -111,16 +114,12 @@ pipeline {
                             RunPowershellCommand(".\\runner.ps1 -action del")
                             // Upload result to omni server
                             RunPowershellCommand(".\\runner.ps1 -action put")
-                            // Publish jnunt test result report
-                            junit allowEmptyResults: true, testResults: 'report*.xml'
-                            // Archive log files
-                            archiveArtifacts allowEmptyArchive: true, artifacts: 'TestResults/**/*.*'
                             // Clear workspace
                             cleanWs()
                         }
                     }
                 }
-                stage('Smoking Test - Hyper-V 2012R2 Gen2') {
+                stage('Hyper-V 2012R2 Gen2') {
                     options {
                         timeout(time: 2, unit: 'HOURS')
                     }
@@ -152,16 +151,12 @@ pipeline {
                             RunPowershellCommand(".\\runner.ps1 -action del -gen2")
                             // Upload result to omni server
                             RunPowershellCommand(".\\runner.ps1 -action put -gen2")
-                            // Publish jnunt test result report
-                            junit allowEmptyResults: true, testResults: 'report*.xml'
-                            // Archive log files
-                            archiveArtifacts allowEmptyArchive: true, artifacts: 'TestResults/**/*.*'
                             // Clear workspace
                             cleanWs()
                         }
                     }
                 }
-                stage('Smoking Test - Hyper-V 2012 Gen1') {
+                stage('Hyper-V 2012 Gen1') {
                     options {
                         timeout(time: 2, unit: 'HOURS')
                     }
@@ -193,276 +188,126 @@ pipeline {
                             RunPowershellCommand(".\\runner.ps1 -action del")
                             // Upload result to omni server
                             RunPowershellCommand(".\\runner.ps1 -action put")
-                            // Publish jnunt test result report
-                            junit allowEmptyResults: true, testResults: 'report*.xml'
-                            // Archive log files
-                            archiveArtifacts allowEmptyArchive: true, artifacts: 'TestResults/**/*.*'
                             // Clear workspace
                             cleanWs()
                         }
                     }
                 }
-                // stage('ESXi 6.7 EFI') {
-                //     agent {
-                //         node {
-                //             label '3rd-CIVAN'
-                //             customWorkspace "workspace/pipeline-6.7-efi-${env.BUILD_ID}"
-                //         }
-                //     }
-                //     when {
-                //         expression { HV == '2' || HV == '3'}
-                //     }
-                //     steps {
-                //         echo 'EFI VM Provision on ESXi 6.7'
-                //         echo 'Test Running'
-                //         cleanWs()
-                //     }
-                // }
-                // stage('ESXi 6.5 BIOS') {
-                //     agent {
-                //         node {
-                //             label '3rd-CIVAN'
-                //             customWorkspace "workspace/pipeline-6.5-bios-${env.BUILD_ID}"
-                //         }
-                //     }
-                //     when {
-                //         expression { HV == '2' || HV == '3'}
-                //     }
-                //     steps {
-                //         echo 'BIOS VM Provision on ESXi 6.5'
-                //         echo 'Test Running'
-                //         cleanWs()
-                //     }
-                // }
-                // stage('ESXi 6.0 EFI') {
-                //     agent {
-                //         node {
-                //             label '3rd-CIVAN'
-                //             customWorkspace "workspace/pipeline-6.0-efi-${env.BUILD_ID}"
-                //         }
-                //     }
-                //     when {
-                //         expression { HV == '2' || HV == '3'}
-                //     }
-                //     steps {
-                //         echo 'EFI VM Provision on ESXi 6.0'
-                //         echo 'Test Running'
-                //         cleanWs()
-                //     }
-                // }
-                // stage('ESXi 5.5 BIOS') {
-                //     agent {
-                //         node {
-                //             label '3rd-CIVAN'
-                //             customWorkspace "workspace/pipeline-5.5-bios-${env.BUILD_ID}"
-                //         }
-                //     }
-                //     when {
-                //         expression { HV == '2' || HV == '3'}
-                //     }
-                //     steps {
-                //         echo 'BIOS VM Provision on ESXi 5.5'
-                //         echo 'Test Running'
-                //         cleanWs()
-                //     }
-                // }
-            }
-        }
-        stage('Functional Test') {
-            environment {
-                DOMAIN = credentials('hyperv-domain-login')
-                OMNI_IP = credentials('omni-server-ip')
-                OMNI_USER = credentials('omni-scp-username')
-            }
-            parallel {
-                stage('Functional Test - Hyper-V 2016 Gen2') {
+                stage('ESXi 6.7 EFI') {
                     options {
-                        timeout(time: 6, unit: 'HOURS')
+                        timeout(time: 2, unit: 'HOURS')
                     }
                     environment {
-                        HOST_ID = '2016-AUTO'
-                        IMAGE = "image-2016-${RHEL_VER}.vhdx"
+                        HOST_ID = '10.73.196.97'
+                        IMAGE = "image-67-${RHEL_VER}.ova"
                     }
                     agent {
                         node {
                             label '3rd-CIVAN'
-                            customWorkspace "workspace/pipeline-2016-g2-${env.BUILD_ID}"
+                            customWorkspace "workspace/pipeline-6.7-efi-smoke-${env.BUILD_ID}"
                         }
                     }
                     when {
-                        expression { HV == '1' || HV == '3'}
+                        expression { HV == '2' || HV == '3'}
                     }
                     steps {
                         echo 'Checkout VM Provision Code'
                         checkout scm
-                        echo 'Gen2 VM Provision on 2016'
-                        powershell 'Get-ChildItem Env:'
-                        RunPowershellCommand(".\\runner.ps1 -action add -dual -gen2")
+                        echo 'EFI VM Provision on ESXi 6.7'
+                        RunPowershellCommand(".\\runner.ps1 -action add -gen2 -esxi")
                         echo 'Checkout LISA Code'
-                        checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'lis']], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/LIS/lis-test.git']]]
-                        RunPowershellCommand(".\\runner.ps1 -action run -dual -gen2")
+                        checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'lis']], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/VirtQE-S1/ESX-LISA.git']]]
+                        RunPowershellCommand(".\\runner.ps1 -action run -gen2 -esxi")
                     }
                     post {
                         always {
                             // Delete VM(s)
-                            RunPowershellCommand(".\\runner.ps1 -action del -dual -gen2")
+                            RunPowershellCommand(".\\runner.ps1 -action del -gen2 -esxi")
                             // Upload result to omni server
-                            RunPowershellCommand(".\\runner.ps1 -action put -dual -gen2")
+                            RunPowershellCommand(".\\runner.ps1 -action put -gen2")
                             // Publish jnunt test result report
-                            junit allowEmptyResults: true, testResults: 'report*.xml'
+                            // junit allowEmptyResults: true, testResults: 'report*.xml'
                             // Archive log files
-                            archiveArtifacts allowEmptyArchive: true, artifacts: 'TestResults/**/*.*'
+                            // archiveArtifacts allowEmptyArchive: true, artifacts: 'TestResults/**/*.*'
                             // Clear workspace
                             cleanWs()
                         }
                     }
                 }
-                stage('Functional Test - Hyper-V 2012R2 Gen1') {
+                stage('ESXi 6.5 BIOS') {
                     options {
-                        timeout(time: 6, unit: 'HOURS')
+                        timeout(time: 2, unit: 'HOURS')
                     }
                     environment {
-                        HOST_ID = '2012R2-AUTO'
-                        IMAGE = "image-2012r2-${RHEL_VER}.vhdx"
+                        HOST_ID = '10.73.72.129'
+                        IMAGE = "image-65-${RHEL_VER}.ova"
                     }
                     agent {
                         node {
                             label '3rd-CIVAN'
-                            customWorkspace "workspace/pipeline-2012r2-g1-${env.BUILD_ID}"
+                            customWorkspace "workspace/pipeline-6.5-bios-smoke-${env.BUILD_ID}"
                         }
                     }
                     when {
-                        expression { HV == '1' || HV == '3'}
+                        expression { HV == '2' || HV == '3'}
                     }
                     steps {
                         echo 'Checkout VM Provision Code'
                         checkout scm
-                        echo 'Gen1 VM Provision on 2012R2'
-                        RunPowershellCommand(".\\runner.ps1 -action add -dual")
+                        echo 'EFI VM Provision on ESXi 6.5'
+                        RunPowershellCommand(".\\runner.ps1 -action add -esxi")
                         echo 'Checkout LISA Code'
-                        checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'lis']], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/LIS/lis-test.git']]]
-                        RunPowershellCommand(".\\runner.ps1 -action run -dual")
+                        checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'lis']], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/VirtQE-S1/ESX-LISA.git']]]
+                        RunPowershellCommand(".\\runner.ps1 -action run -esxi")
                     }
                     post {
                         always {
                             // Delete VM(s)
-                            RunPowershellCommand(".\\runner.ps1 -action del -dual")
+                            RunPowershellCommand(".\\runner.ps1 -action del -esxi")
                             // Upload result to omni server
-                            RunPowershellCommand(".\\runner.ps1 -action put -dual")
-                            // Publish jnunt test result report
-                            junit allowEmptyResults: true, testResults: 'report*.xml'
-                            // Archive log files
-                            archiveArtifacts allowEmptyArchive: true, artifacts: 'TestResults/**/*.*'
+                            RunPowershellCommand(".\\runner.ps1 -action put")
                             // Clear workspace
                             cleanWs()
                         }
                     }
                 }
-                stage('Functional Test - Hyper-V 2012 Gen1') {
+                stage('ESXi 6.0 EFI') {
                     options {
-                        timeout(time: 6, unit: 'HOURS')
+                        timeout(time: 2, unit: 'HOURS')
                     }
                     environment {
-                        HOST_ID = '2012-72-132'
-                        IMAGE = "image-2012-${RHEL_VER}.vhdx"
+                        HOST_ID = '10.73.196.236'
+                        IMAGE = "image-60-${RHEL_VER}.ova"
                     }
                     agent {
                         node {
                             label '3rd-CIVAN'
-                            customWorkspace "workspace/pipeline-2012-g1-${env.BUILD_ID}"
+                            customWorkspace "workspace/pipeline-6.0-efi-smoke-${env.BUILD_ID}"
                         }
                     }
                     when {
-                        expression { HV == '1' || HV == '3'}
+                        expression { HV == '2' || HV == '3'}
                     }
                     steps {
                         echo 'Checkout VM Provision Code'
                         checkout scm
-                        echo 'Gen1 VM Provision on 2012'
-                        RunPowershellCommand(".\\runner.ps1 -action add -dual")
+                        echo 'EFI VM Provision on ESXi 6.0'
+                        RunPowershellCommand(".\\runner.ps1 -action add -gen2 -esxi")
                         echo 'Checkout LISA Code'
-                        checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'lis']], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/LIS/lis-test.git']]]
-                        RunPowershellCommand(".\\runner.ps1 -action run -dual")
+                        checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'lis']], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/VirtQE-S1/ESX-LISA.git']]]
+                        RunPowershellCommand(".\\runner.ps1 -action run -gen2 -esxi")
                     }
                     post {
                         always {
                             // Delete VM(s)
-                            RunPowershellCommand(".\\runner.ps1 -action del -dual")
+                            RunPowershellCommand(".\\runner.ps1 -action del -gen2 -esxi")
                             // Upload result to omni server
-                            RunPowershellCommand(".\\runner.ps1 -action put -dual")
-                            // Publish jnunt test result report
-                            junit allowEmptyResults: true, testResults: 'report*.xml'
-                            // Archive log files
-                            archiveArtifacts allowEmptyArchive: true, artifacts: 'TestResults/**/*.*'
+                            RunPowershellCommand(".\\runner.ps1 -action put")
                             // Clear workspace
                             cleanWs()
                         }
                     }
                 }
-                // stage('ESXi 6.7 EFI') {
-                //     agent {
-                //         node {
-                //             label '3rd-CIVAN'
-                //             customWorkspace "workspace/pipeline-6.7-efi-${env.BUILD_ID}"
-                //         }
-                //     }
-                //     when {
-                //         expression { HV == '2' || HV == '3'}
-                //     }
-                //     steps {
-                //         echo 'EFI VM Provision on ESXi 6.7'
-                //         echo 'Test Running'
-                //         cleanWs()
-                //     }
-                // }
-                // stage('ESXi 6.5 BIOS') {
-                //     agent {
-                //         node {
-                //             label '3rd-CIVAN'
-                //             customWorkspace "workspace/pipeline-6.5-bios-${env.BUILD_ID}"
-                //         }
-                //     }
-                //     when {
-                //         expression { HV == '2' || HV == '3'}
-                //     }
-                //     steps {
-                //         echo 'BIOS VM Provision on ESXi 6.5'
-                //         echo 'Test Running'
-                //         cleanWs()
-                //     }
-                // }
-                // stage('ESXi 6.0 EFI') {
-                //     agent {
-                //         node {
-                //             label '3rd-CIVAN'
-                //             customWorkspace "workspace/pipeline-6.0-efi-${env.BUILD_ID}"
-                //         }
-                //     }
-                //     when {
-                //         expression { HV == '2' || HV == '3'}
-                //     }
-                //     steps {
-                //         echo 'EFI VM Provision on ESXi 6.0'
-                //         echo 'Test Running'
-                //         cleanWs()
-                //     }
-                // }
-                // stage('ESXi 5.5 BIOS') {
-                //     agent {
-                //         node {
-                //             label '3rd-CIVAN'
-                //             customWorkspace "workspace/pipeline-5.5-bios-${env.BUILD_ID}"
-                //         }
-                //     }
-                //     when {
-                //         expression { HV == '2' || HV == '3'}
-                //     }
-                //     steps {
-                //         echo 'BIOS VM Provision on ESXi 5.5'
-                //         echo 'Test Running'
-                //         cleanWs()
-                //     }
-                // }
             }
         }
     }
@@ -478,7 +323,7 @@ pipeline {
                         henrywangxf/jenkins:latest \
                         python3 ./mailbot.py --path /kernels --mail ${FROM} --task ${TASK_URL_PREFIX} --smtp ${SMTP} --hv ${HV}
                 sudo docker volume ls --quiet --filter 'name=kernels-volume-${API_PORT}' | sudo xargs --no-run-if-empty docker volume rm
-                sudo docker volume ls --quiet --filter 'name=nfs' | sudo xargs --no-run-if-empty docker volume rm
+                sudo docker volume ls --quiet --filter 'name=nfs-${API_PORT}' | sudo xargs --no-run-if-empty docker volume rm
                 sudo docker rmi -f henrywangxf/jenkins:latest
             """
             // sudo docker volume ls --quiet --filter 'name=kernels-volume-${API_PORT}' | sudo xargs --no-run-if-empty docker volume rm

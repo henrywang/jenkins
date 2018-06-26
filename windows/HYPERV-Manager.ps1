@@ -1,14 +1,3 @@
-##############################################################################
-##
-## Descrition:
-## copy vhdx file to new vhdx with kernel name, create new vm based on new vhdx
-##
-## Revision:
-## v1.0 - xuli - 09/14/2017 - Create script based on huiijing's clone vm script
-##
-###############################################################################
-
- #Invoke-Command -FilePath .\downstream-create-vm.ps1 -ComputerName 2016-131-61 -ArgumentList "2016-131-61","RHEL-7.5-DOWNSTREAM-GEN1","http://10.73.199.117/downstream/kernel/kernel-3.10.0-858.el7.x86_64.rpm","D:\new-copy-vhdx\","redhat",'C:\InstallDownstreamKernel.sh',$false,"http://10.73.199.117/downstream/tools/lcov-1.13-1.noarch.rpm",gen1,"3.10.0-858.el7","http://10.73.199.117/downstream/kernel/linux-firmware-20180220-62.git6d51311.el7.noarch.rpm","RHEL-7.5-DOWNSTREAM-GEN1-3.10.0-858.el7"
 param (
     [CmdletBinding()]
     [String] $action,
