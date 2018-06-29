@@ -12,6 +12,7 @@ if ($dual)
     if ($esxi)
     {
         Set-Variable -Name suite -Value "acceptance" -Option constant -Scope Script
+        Set-Variable -Name configFile -Value ".\xml\cases.xml" -Option constant -Scope Script
     }
     else
     {
@@ -25,6 +26,7 @@ else
     if ($esxi)
     {
         Set-Variable -Name suite -Value "acceptance" -Option constant -Scope Script
+        Set-Variable -Name configFile -Value ".\xml\esx-downstream-kernel.xml" -Option constant -Scope Script
     }
     else
     {
@@ -83,7 +85,7 @@ switch ($action)
             $env:ENVVISPASSWORD = $env:VSPHERE_PSW
             Write-Host "Info: Running $suite test cases on $env:HOST_ID"
             Set-Location ".\lis"
-            .\lisa.ps1 run .\xml\esx-downstream-kernel.xml -vmName $vmName -hvServer $env:HOST_ID -sshKey demo_id_rsa.ppk -suite $suite -os Linux -dbgLevel 10
+            .\lisa.ps1 run $configFile -vmName $vmName -hvServer $env:HOST_ID -sshKey demo_id_rsa.ppk -suite $suite -os Linux -dbgLevel 10
             Write-Host "Info: Copying result to root"
             Copy-Item ".\TestResults" -Destination ".." -Recurse -Confirm:$false
         }
