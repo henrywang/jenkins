@@ -14,7 +14,7 @@ param(
     [String] $omni_port,
     [String] $omni_user,
     [String] $hostID,
-    [String] $vsphereServer,
+    [String] $vsphereServer = "",
     [String] $vsphereProtocol,
     [PSCredential] $credential
 )
@@ -173,7 +173,7 @@ switch ($action)
     "add"
     {
         VMSetup -vmName $vmName -hostID $hostID -image $image -omni_ip $omni_ip -omni_port $omni_port -omni_user $omni_user -gen2 $gen2 -switchName $switchName -cpuCount $cpuCount -mem $memorySize -snapshotName $snapshotName -kernelName $kernelName
-        if ($dual)
+        if ($dual -and (-not $vsphereServer))
         {
             VMSetup -vmName $vmNameB -hostID $hostID -image $image -omni_ip $omni_ip -omni_port $omni_port -omni_user $omni_user -gen2 $gen2 -switchName $switchName -cpuCount $cpuCount -mem $memorySize -snapshotName $snapshotName -kernelName $kernelName
         }
@@ -181,7 +181,7 @@ switch ($action)
     "del"
     {
         ESXRemove -vmName $vmName -hostID $hostID
-        if ($dual)
+        if ($dual -and (-not $vsphereServer))
         {
             ESXRemove -vmName $vmNameB -hostID $hostID
         }

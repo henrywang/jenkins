@@ -322,7 +322,7 @@ pipeline {
             parallel {
                 stage('Hyper-V 2016 Gen2') {
                     options {
-                        timeout(time: 6, unit: 'HOURS')
+                        timeout(time: 8, unit: 'HOURS')
                     }
                     environment {
                         HOST_ID = '2016-AUTO'
@@ -360,7 +360,7 @@ pipeline {
                 }
                 stage('Hyper-V 2012R2 Gen1') {
                     options {
-                        timeout(time: 6, unit: 'HOURS')
+                        timeout(time: 8, unit: 'HOURS')
                     }
                     environment {
                         HOST_ID = '2012R2-AUTO'
@@ -397,7 +397,7 @@ pipeline {
                 }
                 stage('Hyper-V 2012 Gen1') {
                     options {
-                        timeout(time: 6, unit: 'HOURS')
+                        timeout(time: 8, unit: 'HOURS')
                     }
                     environment {
                         HOST_ID = '2012-72-132'
@@ -434,7 +434,7 @@ pipeline {
                 }
                 stage('ESXi 6.7 BIOS') {
                     options {
-                        timeout(time: 2, unit: 'HOURS')
+                        timeout(time: 5, unit: 'HOURS')
                     }
                     environment {
                         HOST_ID = '10.73.196.97'
@@ -471,7 +471,7 @@ pipeline {
                 }
                 stage('ESXi 6.5 EFI') {
                     options {
-                        timeout(time: 2, unit: 'HOURS')
+                        timeout(time: 5, unit: 'HOURS')
                     }
                     environment {
                         HOST_ID = '10.73.72.129'
@@ -508,7 +508,7 @@ pipeline {
                 }
                 stage('ESXi 6.0 BIOS') {
                     options {
-                        timeout(time: 2, unit: 'HOURS')
+                        timeout(time: 5, unit: 'HOURS')
                     }
                     environment {
                         HOST_ID = '10.73.196.236'
