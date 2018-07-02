@@ -39,13 +39,13 @@ pipeline {
                 sh """
                     sudo docker network inspect jenkins >/dev/null 2>&1 || sudo docker network create jenkins
                     sudo docker pull henrywangxf/jenkins:latest
-                    sudo docker ps --quiet --all --filter 'name=omni-${API_PORT}' | sudo xargs --no-run-if-empty docker rm -f
-                    sudo docker volume ls --quiet --filter 'name=kernels-volume-${API_PORT}' | sudo xargs --no-run-if-empty docker volume rm
-                    sudo docker volume inspect nfs-${API_PORT} > /dev/null 2>&1 || \
+                    sudo docker ps --quiet --all --filter 'name=omni-func-${API_PORT}' | sudo xargs --no-run-if-empty docker rm -f
+                    sudo docker volume ls --quiet --filter 'name=kernels-volume-func-${API_PORT}' | sudo xargs --no-run-if-empty docker volume rm
+                    sudo docker volume inspect nfs-func-${API_PORT} > /dev/null 2>&1 || \
                         sudo docker volume create --driver local \
-                        --opt type=nfs --opt o=addr=${NFS_IP} --opt device=:${NFS_PATH} nfs-${API_PORT}
-	                sudo docker run -d --name omni-${API_PORT} --restart=always \
-                        -p ${API_PORT}:22 -v kernels-volume-${API_PORT}:/kernels -v nfs-${API_PORT}:/kernels/nfs \
+                        --opt type=nfs --opt o=addr=${NFS_IP} --opt device=:${NFS_PATH} nfs-func-${API_PORT}
+	                sudo docker run -d --name omni-func-${API_PORT} --restart=always \
+                        -p ${API_PORT}:22 -v kernels-volume-func-${API_PORT}:/kernels -v nfs-func-${API_PORT}:/kernels/nfs \
                         --network jenkins --security-opt label=disable \
                         -e AUTHORIZED_KEYS=\"${PUBLIC_KEY}\" \
                         henrywangxf/jenkins:latest
@@ -61,9 +61,9 @@ pipeline {
             steps {
                 echo 'Downloading kernel rpm...'
                 sh """
-                    sudo docker ps --quiet --all --filter 'name=download-${API_PORT}' | sudo xargs --no-run-if-empty docker rm -f
-	                sudo docker run --rm --name download-${API_PORT} \
-                        -v kernels-volume-${API_PORT}:/kernels --network jenkins \
+                    sudo docker ps --quiet --all --filter 'name=download-func-${API_PORT}' | sudo xargs --no-run-if-empty docker rm -f
+	                sudo docker run --rm --name download-func-${API_PORT} \
+                        -v kernels-volume-func-${API_PORT}:/kernels --network jenkins \
                         henrywangxf/jenkins:latest \
                         python3 kbot.py ${name}-${version}-${release} ${BREW_API} --download --id ${id} --path /kernels
                 """
@@ -313,16 +313,16 @@ pipeline {
             echo 'Start result analyzer and email sender container'
             echo 'Remove volume'
             sh """
-                sudo docker ps --quiet --all --filter 'name=omni-${API_PORT}' | sudo xargs --no-run-if-empty docker rm -f
+                sudo docker ps --quiet --all --filter 'name=omni-func-${API_PORT}' | sudo xargs --no-run-if-empty docker rm -f
                 sudo docker run --rm --name mailbot-${API_PORT} \
-                        -v kernels-volume-${API_PORT}:/kernels --network jenkins \
+                        -v kernels-volume-func-${API_PORT}:/kernels --network jenkins \
                         henrywangxf/jenkins:latest \
                         python3 ./mailbot.py --path /kernels --mail ${FROM} --task ${TASK_URL_PREFIX} --smtp ${SMTP} --hv ${HV}
-                sudo docker volume ls --quiet --filter 'name=kernels-volume-${API_PORT}' | sudo xargs --no-run-if-empty docker volume rm
-                sudo docker volume ls --quiet --filter 'name=nfs-${API_PORT}' | sudo xargs --no-run-if-empty docker volume rm
-                sudo docker rmi -f henrywangxf/jenkins:latest
+                sudo docker volume ls --quiet --filter 'name=kernels-volume-func-${API_PORT}' | sudo xargs --no-run-if-empty docker volume rm
+                sudo docker volume ls --quiet --filter 'name=nfs-func-${API_PORT}' | sudo xargs --no-run-if-empty docker volume rm
             """
             // sudo docker volume ls --quiet --filter 'name=kernels-volume-${API_PORT}' | sudo xargs --no-run-if-empty docker volume rm
+            // sudo docker rmi -f henrywangxf/jenkins:latest
             cleanWs()
         }
     }

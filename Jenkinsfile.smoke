@@ -5,7 +5,7 @@ pipeline {
     agent {
         node {
             label '3rd-CIBUS'
-            customWorkspace "workspace/pipeline-smoke-${env.BUILD_ID}"
+            customWorkspace "workspace/pipeline-${env.BUILD_ID}"
         }
     }
     environment {
@@ -92,7 +92,7 @@ pipeline {
                     agent {
                         node {
                             label '3rd-CIVAN'
-                            customWorkspace "workspace/pipeline-2016-g1-smoking-${env.BUILD_ID}"
+                            customWorkspace "workspace/pipeline-2016-g1-${env.BUILD_ID}"
                         }
                     }
                     when {
@@ -130,7 +130,7 @@ pipeline {
                     agent {
                         node {
                             label '3rd-CIVAN'
-                            customWorkspace "workspace/pipeline-2012r2-g2-smoking-${env.BUILD_ID}"
+                            customWorkspace "workspace/pipeline-2012r2-g2-${env.BUILD_ID}"
                         }
                     }
                     when {
@@ -167,7 +167,7 @@ pipeline {
                     agent {
                         node {
                             label '3rd-CIVAN'
-                            customWorkspace "workspace/pipeline-2012-g1-smoking-${env.BUILD_ID}"
+                            customWorkspace "workspace/pipeline-2012-g1-${env.BUILD_ID}"
                         }
                     }
                     when {
@@ -204,7 +204,7 @@ pipeline {
                     agent {
                         node {
                             label '3rd-CIVAN'
-                            customWorkspace "workspace/pipeline-6.7-efi-smoke-${env.BUILD_ID}"
+                            customWorkspace "workspace/pipeline-6.7-efi-${env.BUILD_ID}"
                         }
                     }
                     when {
@@ -245,7 +245,7 @@ pipeline {
                     agent {
                         node {
                             label '3rd-CIVAN'
-                            customWorkspace "workspace/pipeline-6.5-bios-smoke-${env.BUILD_ID}"
+                            customWorkspace "workspace/pipeline-6.5-bios-${env.BUILD_ID}"
                         }
                     }
                     when {
@@ -282,7 +282,7 @@ pipeline {
                     agent {
                         node {
                             label '3rd-CIVAN'
-                            customWorkspace "workspace/pipeline-6.0-efi-smoke-${env.BUILD_ID}"
+                            customWorkspace "workspace/pipeline-6.0-efi-${env.BUILD_ID}"
                         }
                     }
                     when {
@@ -301,6 +301,241 @@ pipeline {
                         always {
                             // Delete VM(s)
                             RunPowershellCommand(".\\runner.ps1 -action del -gen2 -esxi")
+                            // Upload result to omni server
+                            RunPowershellCommand(".\\runner.ps1 -action put")
+                            // Clear workspace
+                            cleanWs()
+                        }
+                    }
+                }
+            }
+        }
+        stage('Functional Test') {
+            environment {
+                DOMAIN = credentials('hyperv-domain-login')
+                VSPHERE = credentials('fd83fe98-2754-4985-9276-12fbbf73d3bf')
+                OMNI_IP = credentials('omni-server-ip')
+                OMNI_USER = credentials('omni-scp-username')
+                ENVVISIPADDR = credentials('vsphere-ip')
+                ENVVISPROTOCOL = 'HTTPS'
+            }
+            parallel {
+                stage('Hyper-V 2016 Gen2') {
+                    options {
+                        timeout(time: 6, unit: 'HOURS')
+                    }
+                    environment {
+                        HOST_ID = '2016-AUTO'
+                        IMAGE = "image-2016-${RHEL_VER}.vhdx"
+                    }
+                    agent {
+                        node {
+                            label '3rd-CIVAN'
+                            customWorkspace "workspace/pipeline-2016-g2-${env.BUILD_ID}"
+                        }
+                    }
+                    when {
+                        expression { HV == '1' || HV == '3'}
+                    }
+                    steps {
+                        echo 'Checkout VM Provision Code'
+                        checkout scm
+                        echo 'Gen2 VM Provision on 2016'
+                        powershell 'Get-ChildItem Env:'
+                        RunPowershellCommand(".\\runner.ps1 -action add -dual -gen2")
+                        echo 'Checkout LISA Code'
+                        checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'lis']], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/LIS/lis-test.git']]]
+                        RunPowershellCommand(".\\runner.ps1 -action run -dual -gen2")
+                    }
+                    post {
+                        always {
+                            // Delete VM(s)
+                            RunPowershellCommand(".\\runner.ps1 -action del -dual -gen2")
+                            // Upload result to omni server
+                            RunPowershellCommand(".\\runner.ps1 -action put -dual -gen2")
+                            // Clear workspace
+                            cleanWs()
+                        }
+                    }
+                }
+                stage('Hyper-V 2012R2 Gen1') {
+                    options {
+                        timeout(time: 6, unit: 'HOURS')
+                    }
+                    environment {
+                        HOST_ID = '2012R2-AUTO'
+                        IMAGE = "image-2012r2-${RHEL_VER}.vhdx"
+                    }
+                    agent {
+                        node {
+                            label '3rd-CIVAN'
+                            customWorkspace "workspace/pipeline-2012r2-g1-${env.BUILD_ID}"
+                        }
+                    }
+                    when {
+                        expression { HV == '1' || HV == '3'}
+                    }
+                    steps {
+                        echo 'Checkout VM Provision Code'
+                        checkout scm
+                        echo 'Gen1 VM Provision on 2012R2'
+                        RunPowershellCommand(".\\runner.ps1 -action add -dual")
+                        echo 'Checkout LISA Code'
+                        checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'lis']], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/LIS/lis-test.git']]]
+                        RunPowershellCommand(".\\runner.ps1 -action run -dual")
+                    }
+                    post {
+                        always {
+                            // Delete VM(s)
+                            RunPowershellCommand(".\\runner.ps1 -action del -dual")
+                            // Upload result to omni server
+                            RunPowershellCommand(".\\runner.ps1 -action put -dual")
+                            // Clear workspace
+                            cleanWs()
+                        }
+                    }
+                }
+                stage('Hyper-V 2012 Gen1') {
+                    options {
+                        timeout(time: 6, unit: 'HOURS')
+                    }
+                    environment {
+                        HOST_ID = '2012-72-132'
+                        IMAGE = "image-2012-${RHEL_VER}.vhdx"
+                    }
+                    agent {
+                        node {
+                            label '3rd-CIVAN'
+                            customWorkspace "workspace/pipeline-2012-g1-${env.BUILD_ID}"
+                        }
+                    }
+                    when {
+                        expression { HV == '1' || HV == '3'}
+                    }
+                    steps {
+                        echo 'Checkout VM Provision Code'
+                        checkout scm
+                        echo 'Gen1 VM Provision on 2012'
+                        RunPowershellCommand(".\\runner.ps1 -action add -dual")
+                        echo 'Checkout LISA Code'
+                        checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'lis']], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/LIS/lis-test.git']]]
+                        RunPowershellCommand(".\\runner.ps1 -action run -dual")
+                    }
+                    post {
+                        always {
+                            // Delete VM(s)
+                            RunPowershellCommand(".\\runner.ps1 -action del -dual")
+                            // Upload result to omni server
+                            RunPowershellCommand(".\\runner.ps1 -action put -dual")
+                            // Clear workspace
+                            cleanWs()
+                        }
+                    }
+                }
+                stage('ESXi 6.7 BIOS') {
+                    options {
+                        timeout(time: 2, unit: 'HOURS')
+                    }
+                    environment {
+                        HOST_ID = '10.73.196.97'
+                        IMAGE = "image-67-${RHEL_VER}.ova"
+                    }
+                    agent {
+                        node {
+                            label '3rd-CIVAN'
+                            customWorkspace "workspace/pipeline-6.7-bios-${env.BUILD_ID}"
+                        }
+                    }
+                    when {
+                        expression { HV == '2' || HV == '3'}
+                    }
+                    steps {
+                        echo 'Checkout VM Provision Code'
+                        checkout scm
+                        echo 'EFI VM Provision on ESXi 6.7'
+                        RunPowershellCommand(".\\runner.ps1 -action add -dual -esxi")
+                        echo 'Checkout LISA Code'
+                        checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'lis']], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/VirtQE-S1/ESX-LISA.git']]]
+                        RunPowershellCommand(".\\runner.ps1 -action run -dual -esxi")
+                    }
+                    post {
+                        always {
+                            // Delete VM(s)
+                            RunPowershellCommand(".\\runner.ps1 -action del -dual -esxi")
+                            // Upload result to omni server
+                            RunPowershellCommand(".\\runner.ps1 -action put")
+                            // Clear workspace
+                            cleanWs()
+                        }
+                    }
+                }
+                stage('ESXi 6.5 EFI') {
+                    options {
+                        timeout(time: 2, unit: 'HOURS')
+                    }
+                    environment {
+                        HOST_ID = '10.73.72.129'
+                        IMAGE = "image-65-${RHEL_VER}.ova"
+                    }
+                    agent {
+                        node {
+                            label '3rd-CIVAN'
+                            customWorkspace "workspace/pipeline-6.5-efi-${env.BUILD_ID}"
+                        }
+                    }
+                    when {
+                        expression { HV == '2' || HV == '3'}
+                    }
+                    steps {
+                        echo 'Checkout VM Provision Code'
+                        checkout scm
+                        echo 'EFI VM Provision on ESXi 6.5'
+                        RunPowershellCommand(".\\runner.ps1 -action add -dual -gen2 -esxi")
+                        echo 'Checkout LISA Code'
+                        checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'lis']], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/VirtQE-S1/ESX-LISA.git']]]
+                        RunPowershellCommand(".\\runner.ps1 -action run -dual -gen2 -esxi")
+                    }
+                    post {
+                        always {
+                            // Delete VM(s)
+                            RunPowershellCommand(".\\runner.ps1 -action del -dual -gen2 -esxi")
+                            // Upload result to omni server
+                            RunPowershellCommand(".\\runner.ps1 -action put")
+                            // Clear workspace
+                            cleanWs()
+                        }
+                    }
+                }
+                stage('ESXi 6.0 BIOS') {
+                    options {
+                        timeout(time: 2, unit: 'HOURS')
+                    }
+                    environment {
+                        HOST_ID = '10.73.196.236'
+                        IMAGE = "image-60-${RHEL_VER}.ova"
+                    }
+                    agent {
+                        node {
+                            label '3rd-CIVAN'
+                            customWorkspace "workspace/pipeline-6.0-bios-${env.BUILD_ID}"
+                        }
+                    }
+                    when {
+                        expression { HV == '2' || HV == '3'}
+                    }
+                    steps {
+                        echo 'Checkout VM Provision Code'
+                        checkout scm
+                        echo 'EFI VM Provision on ESXi 6.0'
+                        RunPowershellCommand(".\\runner.ps1 -action add -dual -esxi")
+                        echo 'Checkout LISA Code'
+                        checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'lis']], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/VirtQE-S1/ESX-LISA.git']]]
+                        RunPowershellCommand(".\\runner.ps1 -action run -dual -esxi")
+                    }
+                    post {
+                        always {
+                            // Delete VM(s)
+                            RunPowershellCommand(".\\runner.ps1 -action del -dual -esxi")
                             // Upload result to omni server
                             RunPowershellCommand(".\\runner.ps1 -action put")
                             // Clear workspace
