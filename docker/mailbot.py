@@ -13,6 +13,14 @@ import hwlogging
 
 def parse_xml(path, logger):
     """Parse JUnix XML files, list all failed cases."""
+    hypervisors = {
+        "2016-AUTO": "Windows Server 2016",
+        "2012R2-AUTO": "Windows Server 2012R2",
+        "2012-72-132": "Windows Server 2012",
+        "10.73.196.97": "VMWare ESXi 6.7",
+        "10.73.72.129": "VMWare ESXi 6.5",
+        "10.73.196.236": "VMWare ESXi 6.0"
+    }
     report_list = []
 
     files = [join(path, f) for f in listdir(path)
@@ -27,10 +35,19 @@ def parse_xml(path, logger):
         file_meta["owner"] = file_info_list[-2]
         if "smoke" in file_info_list:
             file_meta["type"] = "smoke"
-            file_meta["hv"] = "-".join(file_info_list[:-3])
+            hv_str = "-".join(file_info_list[:-3])
+            if hv_str in hypervisors.keys():
+                file_meta["hv"] = hypervisors[hv_str]
+            else:
+                file_meta["hv"] = hv_str
         else:
             file_meta["type"] = "functional"
-            file_meta["hv"] = "-".join(file_info_list[:-2])
+            hv_str = "-".join(file_info_list[:-2])
+            if hv_str in hypervisors.keys():
+                file_meta["hv"] = hypervisors[hv_str]
+            else:
+                file_meta["hv"] = hv_str
+            file_meta["hv"] = hv_str
 
         tree = et.parse(xml_file)
         root = tree.getroot()
@@ -134,6 +151,7 @@ def sender(metadata, logger, mail, smtp, task, hv):
     domain = re.search("@[\w.]+", mail)
     msg['From'] = mail
     msg['To'] = metadata[0]["owner"] + domain.group()
+    msg['CC'] = mail
     msg.set_content(body)
 
     with smtplib.SMTP(smtp) as s:
