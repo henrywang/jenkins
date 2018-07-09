@@ -26,7 +26,7 @@ else
     if ($esxi)
     {
         Set-Variable -Name suite -Value "acceptance" -Option constant -Scope Script
-        Set-Variable -Name configFile -Value ".\xml\esx-downstream-kernel.xml" -Option constant -Scope Script
+        Set-Variable -Name configFile -Value ".\xml\esxi-dsk.xml" -Option constant -Scope Script
     }
     else
     {
